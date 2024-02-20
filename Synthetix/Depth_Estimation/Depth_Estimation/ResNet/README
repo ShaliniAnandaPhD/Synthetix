@@ -1,0 +1,9 @@
+# Simple Depth Estimation Model
+
+## Overview
+This project demonstrates a simple convolutional neural network (CNN) for depth estimation using TensorFlow and Keras. It's designed to provide a basic understanding of depth estimation mechanics.
+
+## Installation
+Clone this repository and install the required Python packages:
+cd depth-estimation-keras
+pip install -r requirements.txt
