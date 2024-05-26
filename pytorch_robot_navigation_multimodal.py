@@ -1,4 +1,5 @@
 # Python script using PyTorch for robotic navigation with multi-modal learning, based on the paper "MultiNav: Taking the Scenic Route using Multiple Modalities for Navigation" (2022).
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
