@@ -1917,14 +1917,17 @@ def generate_tts(request_data: Dict[str, Any]) -> Dict[str, Any]:
         
         # Create agent and generate audio
         agent = CulturalAgent()
-        audio_base64 = agent.generate_voice_audio.remote(
+        audio_bytes = agent.generate_voice_response.remote(
             text=text,
             city_name=city_name,
             tier=tier
         )
         
-        if not audio_base64:
+        if not audio_bytes:
             raise RuntimeError("No audio data returned from TTS provider")
+        
+        # Convert bytes to base64 for JSON response
+        audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
         
         # Calculate approximate duration
         # Average speaking rate ~150 words/min = 2.5 words/sec
