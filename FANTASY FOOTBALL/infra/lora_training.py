@@ -24,7 +24,7 @@ import os
 # MODAL APP CONFIGURATION
 # ============================================================================
 
-lora_app = modal.App("sportscaster-lora")
+app = modal.App("sportscaster-lora")
 
 # GPU-enabled image with all dependencies
 lora_image = (
@@ -39,7 +39,8 @@ lora_image = (
         "trl>=0.7.0",
         "huggingface_hub>=0.20.0",
         "safetensors>=0.4.0",
-        "scipy>=1.11.0"
+        "scipy>=1.11.0",
+        "fastapi>=0.100.0"
     )
     .env({"HF_HOME": "/cache/huggingface"})
 )
@@ -87,7 +88,7 @@ TRAINING_CONFIG = {
 # TRAINING FUNCTION
 # ============================================================================
 
-@lora_app.function(
+@app.function(
     image=lora_image,
     gpu="A100",
     timeout=7200,  # 2 hours max
@@ -240,7 +241,7 @@ You are a {city} sportscaster with passionate local pride and deep knowledge of 
 # INFERENCE FUNCTION
 # ============================================================================
 
-@lora_app.function(
+@app.function(
     image=lora_image,
     gpu="T4",
     timeout=120,
@@ -345,7 +346,7 @@ You are a {city} sportscaster with passionate local pride and deep knowledge of 
 # ADAPTER MANAGEMENT
 # ============================================================================
 
-@lora_app.function(image=lora_image, volumes={"/adapters": adapter_store})
+@app.function(image=lora_image, volumes={"/adapters": adapter_store})
 def list_adapters() -> List[str]:
     """List all available LoRA adapters."""
     import os
@@ -362,7 +363,7 @@ def list_adapters() -> List[str]:
     return adapters
 
 
-@lora_app.function(image=lora_image, volumes={"/adapters": adapter_store})
+@app.function(image=lora_image, volumes={"/adapters": adapter_store})
 def delete_adapter(adapter_name: str) -> Dict[str, Any]:
     """Delete a LoRA adapter."""
     import shutil
@@ -379,26 +380,20 @@ def delete_adapter(adapter_name: str) -> Dict[str, Any]:
 
 
 # ============================================================================
-# WEB ENDPOINTS
+# CALLABLE FUNCTIONS (No web endpoints to stay under 8-endpoint limit)
+# These can be called from the main orchestrator app
 # ============================================================================
 
-@lora_app.function(image=lora_image, timeout=7200, gpu="A100", volumes={"/cache": model_cache, "/adapters": adapter_store}, secrets=[modal.Secret.from_name("huggingface-secret")])
-@modal.web_endpoint(method="POST")
-def train_adapter_endpoint(request: dict):
+@app.function(image=lora_image, timeout=7200, gpu="A100", volumes={"/cache": model_cache, "/adapters": adapter_store}, secrets=[modal.Secret.from_name("huggingface-secret")])
+def train_adapter_api(
+    training_data: List[Dict[str, Any]],
+    adapter_name: str = "custom-adapter",
+    num_epochs: int = 3
+) -> Dict[str, Any]:
     """
-    Web endpoint to trigger LoRA training.
-    
-    Request:
-        {
-            "training_data": [...],
-            "adapter_name": "philadelphia-v1",
-            "num_epochs": 3
-        }
+    API function to trigger LoRA training.
+    Call from main orchestrator: sportscaster_lora.train_adapter_api.remote(...)
     """
-    training_data = request.get("training_data", [])
-    adapter_name = request.get("adapter_name", "custom-adapter")
-    num_epochs = request.get("num_epochs", 3)
-    
     if len(training_data) < 50:
         return {
             "status": "error",
@@ -414,23 +409,16 @@ def train_adapter_endpoint(request: dict):
     return result
 
 
-@lora_app.function(image=lora_image, timeout=120, gpu="T4", volumes={"/cache": model_cache, "/adapters": adapter_store}, secrets=[modal.Secret.from_name("huggingface-secret")])
-@modal.web_endpoint(method="POST")
-def generate_endpoint(request: dict):
+@app.function(image=lora_image, timeout=120, gpu="T4", volumes={"/cache": model_cache, "/adapters": adapter_store}, secrets=[modal.Secret.from_name("huggingface-secret")])
+def generate_api(
+    prompt: str,
+    adapter_name: str,
+    city: str = "Philadelphia"
+) -> Dict[str, Any]:
     """
-    Web endpoint for LoRA inference.
-    
-    Request:
-        {
-            "prompt": "React to the Eagles touchdown!",
-            "adapter_name": "philadelphia-v1",
-            "city": "Philadelphia"
-        }
+    API function for LoRA inference.
+    Call from main orchestrator: sportscaster_lora.generate_api.remote(...)
     """
-    prompt = request.get("prompt", "")
-    adapter_name = request.get("adapter_name", "")
-    city = request.get("city", "Philadelphia")
-    
     if not prompt:
         return {"status": "error", "error": "Prompt required"}
     
@@ -446,9 +434,8 @@ def generate_endpoint(request: dict):
     return result
 
 
-@lora_app.function(image=lora_image, volumes={"/adapters": adapter_store})
-@modal.web_endpoint(method="GET")
-def list_adapters_endpoint():
+@app.function(image=lora_image, volumes={"/adapters": adapter_store})
+def list_adapters_api() -> Dict[str, Any]:
     """List all available LoRA adapters."""
     adapters = list_adapters.remote()
     return {
@@ -462,7 +449,7 @@ def list_adapters_endpoint():
 # LOCAL ENTRYPOINT
 # ============================================================================
 
-@lora_app.local_entrypoint()
+@app.local_entrypoint()
 def main():
     """
     Local testing entrypoint.
