@@ -219,7 +219,7 @@ image = (
         "google-cloud-aiplatform",    # Vertex AI SDK (Gemini)
         "redis",                      # Redis client for hot state
         "google-cloud-texttospeech",  # Google Cloud TTS (Standard)
-        "elevenlabs",                 # ElevenLabs TTS (Premium)
+        "elevenlabs>=1.0.0",          # ElevenLabs TTS (Premium) - v1.0+ required for new API
         "websockets",                 # WebSocket for streaming TTS
         "sse-starlette",              # Server-Sent Events for streaming
     )
@@ -741,53 +741,53 @@ class CulturalAgent:
         except Exception as e:
             print(f"[CACHE READ ERROR] Failed to check Redis: {e}")
         
-        # ----------------------------------------------------------------
-        # 2. GENERATE AUDIO: Call appropriate TTS provider
-        # ----------------------------------------------------------------
-        # ----------------------------------------------------------------
-        # 2. GENERATE AUDIO: Call appropriate TTS provider
+        # 2. GENERATE AUDIO: Try ElevenLabs first, then Google TTS as fallback
         # ----------------------------------------------------------------
         try:
-            if tier == "premium":
-                # Use ElevenLabs with Key Rotation
+            audio_bytes = None
+            
+            # ALWAYS try ElevenLabs first if keys are available
+            if self.elevenlabs_keys:
                 from elevenlabs.client import ElevenLabs
                 
-                audio_bytes = None
+                elevenlabs_voice_id = ELEVENLABS_VOICE_MAP.get(city_name, "pNInz6obpgDQGcFmaJgB")
                 last_error = None
                 
                 # Try keys in rotation
                 for api_key in self.elevenlabs_keys:
                     try:
                         client = ElevenLabs(api_key=api_key)
-                        audio_generator = client.generate(
+                        # Use new SDK method: text_to_speech.convert()
+                        audio_generator = client.text_to_speech.convert(
                             text=text,
-                            voice=voice_id,
-                            model="eleven_monolingual_v1",
+                            voice_id=elevenlabs_voice_id,
+                            model_id="eleven_monolingual_v1",
                             output_format="mp3_44100_128"
                         )
+                        # Collect audio bytes from generator
                         audio_bytes = b"".join(audio_generator)
-                        print(f"[TTS SUCCESS - PREMIUM] ElevenLabs audio for {city_name} (voice: {voice_id})")
+                        tier = "premium"  # Mark as premium since ElevenLabs worked
+                        print(f"[TTS SUCCESS - ELEVENLABS] Audio for {city_name} (voice: {elevenlabs_voice_id})")
                         break  # Success!
                     except Exception as e:
-                        print(f"[TTS ROTATION] Key failed: {e}")
+                        print(f"[TTS ROTATION] ElevenLabs key failed: {e}")
                         last_error = e
                         continue  # Try next key
-                
-                if audio_bytes is None:
-                    # If all keys failed, fall back to standard
-                    print(f"[TTS FALLBACK] All ElevenLabs keys failed. Falling back to Standard.")
-                    tier = "standard"
-                    voice_id = GOOGLE_VOICE_MAP.get(city_name, "en-US-Wavenet-D")
-                    # Fall through to standard block below
             
-            if tier == "standard":
-                # Use Google Cloud TTS (Standard)
-                # Use our robust provider class
-                if not self.google_tts_provider:
-                     raise RuntimeError("Google TTS provider not available")
-                     
-                audio_bytes = self.google_tts_provider.generate_audio(text, voice_id)
-                print(f"[TTS SUCCESS - STANDARD] Google TTS audio for {city_name} (voice: {voice_id})")
+            # Fall back to Google TTS if ElevenLabs failed or no keys
+            if audio_bytes is None:
+                print(f"[TTS FALLBACK] Trying Google TTS...")
+                if self.google_tts_provider:
+                    try:
+                        google_voice_id = GOOGLE_VOICE_MAP.get(city_name, "en-US-Wavenet-D")
+                        audio_bytes = self.google_tts_provider.generate_audio(text, google_voice_id)
+                        tier = "standard"
+                        print(f"[TTS SUCCESS - GOOGLE] Audio for {city_name} (voice: {google_voice_id})")
+                    except Exception as e:
+                        print(f"[TTS ERROR] Google TTS also failed: {e}")
+                        raise RuntimeError(f"All TTS providers failed. ElevenLabs: {last_error}, Google: {e}")
+                else:
+                    raise RuntimeError(f"ElevenLabs failed and Google TTS not available")
             
             # ----------------------------------------------------------------
             # 3. CACHE WRITE: Store in Redis with 90-day TTL
@@ -1879,6 +1879,7 @@ def generate_tts(request_data: Dict[str, Any]) -> Dict[str, Any]:
     }
     """
     import base64
+    import os
     
     text = request_data.get("text", "")
     speaker_id = request_data.get("speaker_id", "narrator")
@@ -1911,37 +1912,47 @@ def generate_tts(request_data: Dict[str, Any]) -> Dict[str, Any]:
         
         print(f"[TTS] Resolved city_name='{city_name}' for speaker_id='{speaker_id}'")
         
-        # Determine voice tier based on intensity
-        # Premium (ElevenLabs) for high intensity, standard (Google) otherwise
-        tier = "premium" if intensity in ["high", "explosive"] else "standard"
+        # Get ElevenLabs voice ID for this city
+        voice_id = ELEVENLABS_VOICE_MAP.get(city_name, "pNInz6obpgDQGcFmaJgB")  # Default: Adam
         
-        # Create agent and generate audio
-        agent = CulturalAgent()
-        audio_bytes = agent.generate_voice_response.remote(
+        # Get API key
+        api_key = os.environ.get("ELEVENLABS_API_KEY")
+        if not api_key:
+            return {"error": "ElevenLabs API key not configured"}
+        
+        # Call ElevenLabs directly (no agent hop)
+        from elevenlabs.client import ElevenLabs
+        
+        print(f"[TTS] Calling ElevenLabs with voice_id='{voice_id}'")
+        client = ElevenLabs(api_key=api_key)
+        
+        audio_generator = client.text_to_speech.convert(
             text=text,
-            city_name=city_name,
-            tier=tier
+            voice_id=voice_id,
+            model_id="eleven_monolingual_v1",
+            output_format="mp3_44100_128"
         )
         
+        # Collect audio bytes
+        audio_bytes = b"".join(audio_generator)
+        
         if not audio_bytes:
-            raise RuntimeError("No audio data returned from TTS provider")
+            return {"error": "No audio data returned from ElevenLabs"}
         
         # Convert bytes to base64 for JSON response
         audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
         
         # Calculate approximate duration
-        # Average speaking rate ~150 words/min = 2.5 words/sec
-        # Average word length ~5 chars, so ~12.5 chars/sec
         word_count = len(text.split())
         duration_ms = int((word_count / 2.5) * 1000)
         
-        print(f"[TTS SUCCESS] Generated audio for '{city_name}', tier='{tier}', duration={duration_ms}ms")
+        print(f"[TTS SUCCESS] Generated {len(audio_bytes)} bytes for '{city_name}', duration={duration_ms}ms")
         
         return {
             "audio_base64": audio_base64,
             "duration_ms": duration_ms,
             "format": "mp3",
-            "tier_used": tier,
+            "tier_used": "premium",
             "speaker_id": speaker_id,
             "city": city_name
         }
