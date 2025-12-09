@@ -1,0 +1,14 @@
+{
+    "name": "fantasy-football-neuron-root",
+    "private": true,
+    "scripts": {
+        "install-frontend": "cd upload-why-not && npm install",
+        "build": "cd upload-why-not && npm install && npm run build"
+    },
+    "engines": {
+        "node": "20.x"
+    },
+    "devDependencies": {
+        "@playwright/test": "^1.57.0"
+    }
+}

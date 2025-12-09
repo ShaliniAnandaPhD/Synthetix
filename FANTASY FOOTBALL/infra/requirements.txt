@@ -1,0 +1,6 @@
+modal
+confluent-kafka
+google-cloud-aiplatform
+anthropic[vertex]
+redis
+google-cloud-texttospeech

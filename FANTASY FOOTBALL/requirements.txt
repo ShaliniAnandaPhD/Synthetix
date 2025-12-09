@@ -1,0 +1,14 @@
+# Core dependencies for AI Fantasy Football Debate System
+
+# Anthropic Claude on Vertex AI
+anthropic[vertex]>=0.18.0
+
+# Google Cloud AI Platform (optional, if needed for additional functionality)
+google-cloud-aiplatform>=1.38.0
+
+# Standard libraries (included with Python, listed for reference)
+# - json (built-in)
+# - os (built-in)
+# - random (built-in)
+# - re (built-in)
+# - time (built-in)

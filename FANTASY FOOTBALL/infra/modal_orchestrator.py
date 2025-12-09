@@ -222,6 +222,11 @@ image = (
         "elevenlabs>=1.0.0",          # ElevenLabs TTS (Premium) - v1.0+ required for new API
         "websockets",                 # WebSocket for streaming TTS
         "sse-starlette",              # Server-Sent Events for streaming
+        # Style Capture v2 dependencies
+        "youtube_transcript_api",     # YouTube transcript extraction
+        "newspaper3k",                # Article content extraction
+        "lxml",                       # HTML parsing for newspaper3k
+        "openai",                     # OpenAI Whisper API for transcription
     )
     .add_local_dir(
         local_path="src",
@@ -998,7 +1003,7 @@ def generate_commentary(request_data: Dict[str, Any]) -> Dict[str, Any]:
 @app.function(
     image=image,
 )
-@modal.web_endpoint(method="POST")
+# @modal.web_endpoint(method="POST")  # DISABLED - Modal 8-endpoint limit (use generate_commentary instead)
 def stream_live_commentary(request_data: Dict[str, Any]):
     """
     Server-Sent Events (SSE) endpoint for real-time streaming commentary.
@@ -2605,6 +2610,375 @@ def check_fine_tuning_status(request: dict):
     except Exception as e:
         return {
             "status": "error",
+            "error": str(e)
+        }
+
+
+# ============================================================================
+# STYLE CAPTURE v2: UNIFIED CONTENT EXTRACTION ENDPOINT
+# ============================================================================
+
+@app.function(image=image, timeout=300)
+@modal.web_endpoint(method="POST")
+def content_extract(data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Unified content extraction endpoint for Style Capture v2.
+    
+    Consolidates youtube, article, and audio extraction to stay within
+    Modal's 8 endpoint limit.
+    
+    Request:
+        { "action": "youtube" | "article" | "audio", ...params }
+    
+    Actions:
+        - youtube: { "action": "youtube", "url": "..." or "videoId": "..." }
+        - article: { "action": "article", "url": "..." }
+        - audio: { "action": "audio", "audio_url": "...", "sample_id": "..." }
+    """
+    action = data.get("action", "").lower()
+    
+    if action == "youtube":
+        return _extract_youtube(data)
+    elif action == "article":
+        return _extract_article(data)
+    elif action == "audio":
+        return _transcribe_audio(data)
+    else:
+        return {
+            "error": f"Unknown action: {action}",
+            "valid_actions": ["youtube", "article", "audio"]
+        }
+
+
+def _extract_youtube(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Extract transcript from YouTube video."""
+    try:
+        from youtube_transcript_api import YouTubeTranscriptApi
+        import re
+        
+        url = data.get("url", "")
+        video_id = data.get("videoId", "")
+        
+        if not video_id and url:
+            patterns = [
+                r'(?:v=|/)([0-9A-Za-z_-]{11}).*',
+                r'(?:embed/)([0-9A-Za-z_-]{11})',
+                r'(?:youtu\.be/)([0-9A-Za-z_-]{11})'
+            ]
+            for pattern in patterns:
+                match = re.search(pattern, url)
+                if match:
+                    video_id = match.group(1)
+                    break
+        
+        if not video_id:
+            return {"error": "Could not extract video ID from URL"}
+        
+        transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
+        full_transcript = " ".join([segment['text'] for segment in transcript_list])
+        
+        duration = 0
+        if transcript_list:
+            last_segment = transcript_list[-1]
+            duration = int(last_segment.get('start', 0) + last_segment.get('duration', 0))
+        
+        return {
+            "transcript": full_transcript,
+            "title": f"YouTube Video: {video_id}",
+            "duration": duration,
+            "videoId": video_id
+        }
+        
+    except Exception as e:
+        error_msg = str(e)
+        if "TranscriptsDisabled" in error_msg:
+            return {"error": "Transcripts are disabled for this video"}
+        elif "NoTranscriptFound" in error_msg:
+            return {"error": "No transcript available for this video"}
+        elif "VideoUnavailable" in error_msg:
+            return {"error": "Video is unavailable or private"}
+        else:
+            return {"error": f"YouTube extraction failed: {error_msg}"}
+
+
+def _extract_article(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Extract readable text content from article URL."""
+    try:
+        from newspaper import Article
+        
+        url = data.get("url", "")
+        if not url:
+            return {"error": "URL is required"}
+        
+        article = Article(url)
+        article.download()
+        article.parse()
+        
+        content = article.text
+        title = article.title
+        
+        if not content or len(content) < 50:
+            return {"error": "Could not extract meaningful content from this URL"}
+        
+        return {
+            "content": content,
+            "title": title or url,
+            "url": url,
+            "authors": article.authors,
+            "publish_date": str(article.publish_date) if article.publish_date else None
+        }
+        
+    except Exception as e:
+        return {"error": f"Article extraction failed: {str(e)}"}
+
+
+def _transcribe_audio(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Transcribe audio from URL using OpenAI Whisper API."""
+    try:
+        import urllib.request
+        import tempfile
+        import os
+        import openai
+        
+        audio_url = data.get("audio_url", "")
+        sample_id = data.get("sample_id", "unknown")
+        
+        if not audio_url:
+            return {"error": "audio_url is required"}
+        
+        openai_key = os.environ.get("OPENAI_API_KEY")
+        if not openai_key:
+            return {"error": "OpenAI API key not configured for audio transcription"}
+        
+        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp_file:
+            urllib.request.urlretrieve(audio_url, tmp_file.name)
+            tmp_path = tmp_file.name
+        
+        try:
+            client = openai.OpenAI(api_key=openai_key)
+            
+            with open(tmp_path, "rb") as audio_file:
+                transcription = client.audio.transcriptions.create(
+                    model="whisper-1",
+                    file=audio_file,
+                    response_format="verbose_json"
+                )
+            
+            return {
+                "transcript": transcription.text,
+                "duration": int(transcription.duration) if hasattr(transcription, 'duration') else 0,
+                "language": transcription.language if hasattr(transcription, 'language') else "en",
+                "sample_id": sample_id
+            }
+            
+        finally:
+            if os.path.exists(tmp_path):
+                os.unlink(tmp_path)
+                
+    except Exception as e:
+        return {"error": f"Audio transcription failed: {str(e)}"}
+
+
+# ============================================================================
+# LIVE COMMENTARY AGENT FUNCTIONS
+# ============================================================================
+
+@app.function(
+    image=image,
+    secrets=[
+        modal.Secret.from_name("googlecloud-secret"),
+    ],
+    cpu=0.5,
+    memory=256,
+    timeout=2,      # 2s max - fast reactions
+    retries=0       # No retries for live - too slow
+)
+def run_reaction_agent(event: dict, region: str, agent_type: str, params: dict) -> dict:
+    """
+    Fast reaction agent for immediate events (sub-150ms target).
+    
+    Used for: touchdowns, turnovers, injuries, big plays.
+    Minimal reasoning, maximum speed.
+    
+    Args:
+        event: Classified event dict with type, description, players, etc.
+        region: Regional profile (e.g., "dallas", "kansas_city")
+        agent_type: Agent archetype ("homer", "analyst", etc.)
+        params: Cultural parameters from regional config
+    
+    Returns:
+        dict with text, emotion, confidence, latency_ms
+    """
+    import time
+    start = time.time()
+    
+    try:
+        from vertexai.generative_models import GenerativeModel
+        import vertexai
+        
+        # Fast init - use Gemini Flash for speed
+        vertexai.init(project=os.environ.get("GOOGLE_CLOUD_PROJECT", "neuron-systems"))
+        model = GenerativeModel("gemini-1.5-flash")
+        
+        # Short, punchy prompt for reactions
+        event_desc = event.get("description", str(event))[:200]
+        event_type = event.get("event_type", "play")
+        
+        reaction_style = params.get("reaction_style", "energetic and passionate")
+        emotional_intensity = params.get("emotional_intensity", "high")
+        
+        prompt = f"""You are a {region.replace('_', ' ')} sports commentator reacting LIVE to:
+{event_desc}
+
+Event type: {event_type}
+Your role: {agent_type}
+Regional style: {reaction_style}
+Emotional level: {emotional_intensity}
+
+Give a 1-2 sentence immediate reaction. Be authentic to your region. Be quick and punchy."""
+
+        response = model.generate_content(
+            prompt,
+            generation_config={
+                "max_output_tokens": 60,
+                "temperature": 0.9
+            }
+        )
+        
+        text = response.text.strip()
+        
+        # Detect emotion from response
+        emotion = "excited"
+        if any(w in text.lower() for w in ["no", "disaster", "terrible", "hurt"]):
+            emotion = "concerned"
+        elif any(w in text.lower() for w in ["interesting", "note", "look"]):
+            emotion = "analytical"
+        
+        latency = int((time.time() - start) * 1000)
+        
+        return {
+            "text": text,
+            "emotion": emotion,
+            "confidence": 0.85,
+            "latency_ms": latency
+        }
+        
+    except Exception as e:
+        return {
+            "text": f"Exciting play there from {region}!",
+            "emotion": "excited",
+            "confidence": 0.5,
+            "latency_ms": int((time.time() - start) * 1000),
+            "error": str(e)
+        }
+
+
+@app.function(
+    image=image,
+    secrets=[
+        modal.Secret.from_name("googlecloud-secret"),
+    ],
+    cpu=1.0,
+    memory=512,
+    timeout=5,      # 5s max - can think more
+    retries=0
+)
+def run_analysis_agent(event: dict, region: str, agent_type: str, params: dict) -> dict:
+    """
+    Strategic analysis agent for non-urgent events (sub-500ms target).
+    
+    Used for: penalties, drive ends, timeouts, stats milestones.
+    Can reference history, stats, context.
+    
+    Args:
+        event: Classified event dict
+        region: Regional profile
+        agent_type: Agent archetype ("historian", "contrarian", "stats_expert")
+        params: Cultural parameters
+    
+    Returns:
+        dict with text, emotion, confidence, latency_ms
+    """
+    import time
+    start = time.time()
+    
+    try:
+        from vertexai.generative_models import GenerativeModel
+        import vertexai
+        
+        vertexai.init(project=os.environ.get("GOOGLE_CLOUD_PROJECT", "neuron-systems"))
+        model = GenerativeModel("gemini-1.5-flash")
+        
+        event_desc = event.get("description", str(event))[:300]
+        event_type = event.get("event_type", "play")
+        players = event.get("players", [])
+        teams = event.get("teams", [])
+        fantasy_impact = event.get("fantasy_impact", 0.5)
+        
+        analysis_style = params.get("analysis_style", "balanced and insightful")
+        memory_years = params.get("memory_years", 5)
+        technical_level = params.get("technical_level", "medium")
+        
+        # Build context for analysis
+        context_parts = []
+        if players:
+            context_parts.append(f"Players involved: {', '.join(players[:3])}")
+        if teams:
+            context_parts.append(f"Teams: {', '.join(teams[:2])}")
+        if fantasy_impact > 0.6:
+            context_parts.append("High fantasy impact")
+        
+        context = ". ".join(context_parts) if context_parts else ""
+        
+        prompt = f"""You are a {region.replace('_', ' ')} sports analyst providing analysis on:
+{event_desc}
+
+Event type: {event_type}
+{context}
+
+Your role: {agent_type}
+Regional perspective: {analysis_style}
+Historical memory: {memory_years} years
+Technical depth: {technical_level}
+
+Provide 2-3 sentences of analysis from your regional perspective.
+Reference relevant history or stats if applicable.
+For fantasy football context, note any lineup implications."""
+
+        response = model.generate_content(
+            prompt,
+            generation_config={
+                "max_output_tokens": 120,
+                "temperature": 0.7
+            }
+        )
+        
+        text = response.text.strip()
+        
+        # Detect emotion
+        emotion = "analytical"
+        if any(w in text.lower() for w in ["historically", "years ago", "remember"]):
+            emotion = "reflective"
+        elif any(w in text.lower() for w in ["disagree", "actually", "but"]):
+            emotion = "contrarian"
+        elif any(w in text.lower() for w in ["great", "excellent", "impressive"]):
+            emotion = "impressed"
+        
+        latency = int((time.time() - start) * 1000)
+        
+        return {
+            "text": text,
+            "emotion": emotion,
+            "confidence": 0.8,
+            "latency_ms": latency
+        }
+        
+    except Exception as e:
+        return {
+            "text": f"Interesting development there for {region}.",
+            "emotion": "analytical",
+            "confidence": 0.5,
+            "latency_ms": int((time.time() - start) * 1000),
             "error": str(e)
         }
 

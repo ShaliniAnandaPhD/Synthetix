@@ -436,16 +436,14 @@ def transcribe_audio_route():
             response_data.headers.add('Access-Control-Allow-Origin', '*')
             return response_data, 400
         
-        # Get Modal webhook URL from environment
-        modal_url = os.environ.get(
-            "MODAL_TRANSCRIBE_WEBHOOK_URL",
-            "https://your-modal-app--transcribe-audio.modal.run"
-        )
+        # Get Modal orchestrator URL
+        modal_url = get_modal_orchestrator_url()
         
-        # Forward to Modal
+        # Forward to consolidated content_extract endpoint
         response = requests.post(
-            modal_url,
+            f"{modal_url}/content_extract",
             json={
+                "action": "audio",
                 "audio_url": audio_url,
                 "sample_id": sample_id
             },
@@ -455,7 +453,7 @@ def transcribe_audio_route():
         result = response.json()
         response_data = jsonify(result)
         response_data.headers.add('Access-Control-Allow-Origin', '*')
-        return response_data, response.status_code
+        return response_data, response.status_code if response.status_code == 200 else 502
         
     except requests.Timeout:
         response_data = jsonify({
@@ -643,10 +641,11 @@ def extract_youtube():
         
         modal_url = get_modal_orchestrator_url()
         
+        # Forward to consolidated content_extract endpoint
         modal_response = requests.post(
-            f"{modal_url}/extract_youtube",
-            json={"url": url},
-            timeout=60
+            f"{modal_url}/content_extract",
+            json={"action": "youtube", "url": url},
+            timeout=120
         )
         
         if modal_response.status_code != 200:
@@ -708,10 +707,11 @@ def extract_article():
         
         modal_url = get_modal_orchestrator_url()
         
+        # Forward to consolidated content_extract endpoint
         modal_response = requests.post(
-            f"{modal_url}/extract_article",
-            json={"url": url},
-            timeout=30
+            f"{modal_url}/content_extract",
+            json={"action": "article", "url": url},
+            timeout=60
         )
         
         if modal_response.status_code != 200:
