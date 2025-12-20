@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 Neuron Live Cortex</title>
+    
+    <!-- React 18 -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        @keyframes pulse-green { 0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); } 50% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); } }
+        @keyframes pulse-red { 0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 50% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } }
+        @keyframes pulse-yellow { 0%, 100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.7); } 50% { box-shadow: 0 0 0 10px rgba(234, 179, 8, 0); } }
+        .glow-green { animation: pulse-green 2s infinite; }
+        .glow-red { animation: pulse-red 2s infinite; }
+        .glow-yellow { animation: pulse-yellow 2s infinite; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-900 text-white min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Locale flag emojis
+        const LOCALE_FLAGS = {
+            'en-US': '🇺🇸',
+            'en-GB': '🇬🇧',
+            'pt-BR': '🇧🇷',
+            'es-MX': '🇲🇽',
+            'en-AU': '🇦🇺',
+            'ja-JP': '🇯🇵'
+        };
+
+        function NeuronDashboard() {
+            const [messages, setMessages] = useState([]);
+            const [connected, setConnected] = useState(false);
+            const [stats, setStats] = useState({ total: 0, touchdowns: 0, penalties: 0 });
+            const messagesEndRef = useRef(null);
+
+            useEffect(() => {
+                console.log('Connecting to SSE stream...');
+                const eventSource = new EventSource('http://localhost:8000/stream');
+
+                eventSource.onopen = () => {
+                    console.log('SSE Connected!');
+                    setConnected(true);
+                };
+
+                eventSource.addEventListener('debate', (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        console.log('Received:', data);
+                        
+                        setMessages(prev => [
+                            { ...data, id: Date.now(), timestamp: new Date().toLocaleTimeString() },
+                            ...prev.slice(0, 49)  // Keep last 50
+                        ]);
+
+                        // Update stats
+                        setStats(prev => ({
+                            total: prev.total + 1,
+                            touchdowns: prev.touchdowns + (data.content?.toLowerCase().includes('touchdown') ? 1 : 0),
+                            penalties: prev.penalties + (data.content?.toLowerCase().includes('penalty') ? 1 : 0)
+                        }));
+                    } catch (e) {
+                        console.error('Parse error:', e);
+                    }
+                });
+
+                eventSource.onerror = (err) => {
+                    console.error('SSE Error:', err);
+                    setConnected(false);
+                };
+
+                return () => {
+                    eventSource.close();
+                };
+            }, []);
+
+            // Determine card style based on content
+            const getCardStyle = (content) => {
+                const text = content?.toLowerCase() || '';
+                if (text.includes('touchdown') || text.includes('gooo')) {
+                    return 'border-green-500 glow-green';
+                } else if (text.includes('penalty') || text.includes('blocked') || text.includes('violation')) {
+                    return 'border-red-500 glow-red';
+                } else if (text.includes('interception') || text.includes('fumble')) {
+                    return 'border-yellow-500 glow-yellow';
+                }
+                return 'border-slate-600';
+            };
+
+            return (
+                <div className="container mx-auto p-6">
+                    {/* Header */}
+                    <header className="text-center mb-8">
+                        <h1 className="text-5xl font-bold mb-2">
+                            🧠 Neuron Live Cortex
+                        </h1>
+                        <p className="text-slate-400">
+                            Real-time AI Commentary • Vertex AI + Confluent Kafka
+                        </p>
+                        <div className="mt-4 flex justify-center gap-4">
+                            <span className={`px-3 py-1 rounded-full text-sm ${connected ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                {connected ? '● Connected' : '○ Disconnected'}
+                            </span>
+                            <span className="px-3 py-1 rounded-full text-sm bg-blue-500/20 text-blue-400">
+                                {stats.total} Events
+                            </span>
+                            <span className="px-3 py-1 rounded-full text-sm bg-green-500/20 text-green-400">
+                                🏈 {stats.touchdowns} TD
+                            </span>
+                            <span className="px-3 py-1 rounded-full text-sm bg-red-500/20 text-red-400">
+                                🚩 {stats.penalties} Penalties
+                            </span>
+                        </div>
+                    </header>
+
+                    {/* Messages Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {messages.length === 0 ? (
+                            <div className="col-span-full text-center py-20 text-slate-500">
+                                <div className="text-6xl mb-4">📡</div>
+                                <p className="text-xl">Waiting for debate events...</p>
+                                <p className="text-sm mt-2">Send messages to <code className="bg-slate-800 px-2 py-1 rounded">nfl-game-events</code> in Confluent</p>
+                            </div>
+                        ) : (
+                            messages.map((msg) => (
+                                <div 
+                                    key={msg.id} 
+                                    className={`fade-in bg-slate-800/50 backdrop-blur rounded-xl p-4 border-2 ${getCardStyle(msg.content)}`}
+                                >
+                                    {/* Header */}
+                                    <div className="flex justify-between items-center mb-3">
+                                        <span className="text-2xl">{LOCALE_FLAGS[msg.locale] || '🌍'}</span>
+                                        <span className="text-xs text-slate-500">{msg.timestamp}</span>
+                                    </div>
+                                    
+                                    {/* Content */}
+                                    <p className="text-lg font-medium mb-3 leading-relaxed">
+                                        {msg.content?.substring(0, 200) || 'No content'}
+                                        {msg.content?.length > 200 && '...'}
+                                    </p>
+                                    
+                                    {/* Footer */}
+                                    <div className="flex justify-between items-center text-xs text-slate-500">
+                                        <span className="bg-slate-700 px-2 py-1 rounded">{msg.locale}</span>
+                                        <span>Confidence: {(msg.confidence * 100).toFixed(0)}%</span>
+                                        <span>v{msg.version}</span>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+
+                    {/* Footer */}
+                    <footer className="mt-12 text-center text-slate-600 text-sm">
+                        <p>Neuron Core • Vertex AI Reasoning Engine • Confluent Cloud</p>
+                        <p className="mt-1">Hackathon 2024 🏆</p>
+                    </footer>
+                </div>
+            );
+        }
+
+        // Mount React App
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<NeuronDashboard />);
+    </script>
+</body>
+</html>
