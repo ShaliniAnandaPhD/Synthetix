@@ -1,0 +1,25 @@
+# Vertex AI Deployment Requirements
+# For deploying neuron_core to Google Vertex AI Reasoning Engine
+
+# Google Cloud AI Platform SDK
+google-cloud-aiplatform>=1.25.0
+
+# Caching and state management
+redis>=4.5.0
+
+# Data validation
+pydantic>=2.0.0
+
+# HTTP client for API calls
+httpx>=0.24.0
+
+# Async support
+aiohttp>=3.8.0
+
+# Logging and monitoring
+google-cloud-logging>=3.5.0
+
+# Note: neuron_core will be packaged and included in the deployment
+# Either via:
+#   - Local wheel: ./neuron_core (pip install -e ./neuron_core)
+#   - Or uploaded as a custom package

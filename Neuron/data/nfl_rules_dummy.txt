@@ -1,0 +1,40 @@
+NFL RULES DUMMY DATA
+====================
+
+SCORING
+-------
+- Touchdown: 6 points
+- Extra Point (Kick): 1 point
+- Two-Point Conversion: 2 points
+- Field Goal: 3 points
+- Safety: 2 points
+
+GAMEPLAY
+--------
+- 4 downs to advance 10 yards
+- 60 minutes of play (4 quarters of 15 minutes)
+- Teams switch sides after each quarter
+- Overtime: 10 minutes in regular season
+
+POSITIONS
+---------
+- Quarterback (QB): Throws the ball
+- Running Back (RB): Rushes the ball
+- Wide Receiver (WR): Catches passes
+- Tight End (TE): Blocks and catches
+- Offensive Line: Protects QB
+
+PENALTIES
+---------
+- Holding: 10 yards
+- Pass Interference: Spot of foul
+- False Start: 5 yards
+- Offsides: 5 yards
+- Roughing the Passer: 15 yards
+
+FANTASY RELEVANCE
+-----------------
+- Standard scoring: 1 point per 10 rushing yards
+- PPR: 1 point per reception
+- Passing TD: 4 points (typically)
+- Rushing/Receiving TD: 6 points

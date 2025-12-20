@@ -1,0 +1,23 @@
+name: 🧠 Intent Phrase Scan (Safe)
+
+on:
+  push:
+    paths:
+      - 'microservices/ambiguity/**'
+  workflow_dispatch:
+
+jobs:
+  keyword-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scan for "follow up" intent phrase (if possible)
+        run: |
+          if [ -d "microservices/ambiguity/ambiguous_request_examples" ]; then
+            echo "📂 Test folder found — scanning for 'follow up'"
+            grep -i "follow up" microservices/ambiguity/ambiguous_request_examples/*.json && \
+            echo "✅ Phrase detected"
+          else
+            echo "⚠️ No test input folder found — skipping scan"
+          fi
+
+

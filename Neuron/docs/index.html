@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neuron LEGO Agent Marketplace Overview</title>
+    <!-- Tailwind CSS CDN for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font import: Space Mono for a techy feel */
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+        body {
+            font-family: 'Space Mono', monospace; /* Changed font to Space Mono */
+            background-color: #f8f8f8; /* Light gray background */
+            color: #333; /* Dark gray text */
+        }
+        /* Basic container styling */
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: #ffffff; /* White background for the content area */
+            border-radius: 0.75rem; /* Rounded corners */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Soft shadow */
+        }
+        /* Heading styles */
+        h1 {
+            color: #1a202c; /* Darker heading color */
+            margin-bottom: 2rem;
+            /* New styles for a more interesting title */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2); /* Subtle text shadow */
+            letter-spacing: 0.1em; /* Slight letter spacing */
+        }
+        h2 {
+            color: #2d3748; /* Slightly lighter heading color */
+            border-bottom: 1px solid #e2e8f0; /* Subtle separator */
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+        /* List item styles for modules and industries */
+        ul li {
+            background-color: #f7fafc; /* Even lighter background for list items */
+            padding: 1rem 1.25rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+            border: 1px solid #ebf4ff; /* Light border */
+        }
+        .module-description, .industry-description, .deployment-description {
+            font-size: 0.9rem;
+            color: #6a768f; /* Slightly muted text for descriptions */
+        }
+        .module-icon, .deployment-icon {
+            font-size: 1.5rem;
+            margin-right: 0.75rem;
+        }
+        .deployment-item {
+            background-color: #f7fafc;
+            padding: 1rem 1.25rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+            border: 1px solid #ebf4ff;
+            display: flex;
+            align-items: center;
+        }
+        .deployment-link {
+            color: #007bff; /* Link color */
+            text-decoration: underline;
+            font-weight: 600;
+        }
+        .deployment-link:hover {
+            color: #0056b3; /* Darker on hover */
+        }
+        /* Styling for the new build button */
+        .build-button-container {
+            text-align: center;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background-color: #e6fffa; /* Light teal background */
+            border: 1px solid #b2f5ea; /* Teal border */
+            border-radius: 0.75rem;
+        }
+        .build-button {
+            display: inline-block;
+            background-color: #38b2ac; /* Strong teal button */
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            font-size: 1.25rem; /* Larger font size */
+        }
+        .build-button:hover {
+            background-color: #319795; /* Darker teal on hover */
+            transform: translateY(-2px); /* Slight lift effect */
+        }
+        .build-button:active {
+            transform: translateY(0); /* Press down effect */
+        }
+        .contact-note {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 1.5rem;
+            background-color: #e0f2f7; /* Light blue background */
+            border: 1px solid #b2ebf2; /* Blue border */
+            border-radius: 0.75rem;
+            color: #00796b; /* Dark teal text */
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .contact-note a {
+            color: #007bff;
+            text-decoration: underline;
+        }
+        .contact-note a:hover {
+            color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Main title -->
+        <h1 class="text-4xl font-bold text-center mb-10">Neuron LEGO Agent Marketplace</h1>
+
+        <!-- Build Agent Button Section -->
+        <div class="build-button-container">
+            <a href="https://github.com/ShaliniAnandaPhD/Neuron/actions/workflows/lego-agent-builder.yml" target="_blank" class="build-button" id="buildAgentButton">
+                ⚙️ Build Your Custom Agent Now!
+            </a>
+            <p class="text-sm text-gray-600 mt-2">Clicking this button will take you to GitHub Actions to initiate a new agent build.</p>
+        </div>
+
+        <!-- Contact Note -->
+        <div class="contact-note">
+            <p>For the <strong>detailed paid version</strong> and <strong>expedited generation of custom agents</strong>, please reach out via LinkedIn: <a href="https://www.linkedin.com/in/shalinianandaphd/" target="_blank">Shalini Ananda, PhD</a></p>
+        </div>
+
+        <!-- Section for Deployment Methods & Lifecycle -->
+        <h2 class="text-2xl font-semibold">⚙️ Deployment Methods & Lifecycle</h2>
+        <ul class="list-none p-0 mt-6">
+            <li class="deployment-item">
+                <span class="deployment-icon">🐳</span>
+                <div>
+                    <strong class="text-lg text-blue-700">Dockerized Agents:</strong>
+                    <span class="deployment-description">Each production-ready agent is packaged as a Docker container, ensuring portability and consistent environments across different platforms.</span>
+                </div>
+            </li>
+            <li class="deployment-item">
+                <span class="deployment-icon">☸️</span>
+                <div>
+                    <strong class="text-lg text-blue-700">Kubernetes-Ready:</strong>
+                    <span class="deployment-description">Agents come with Kubernetes deployment manifests (YAML files) for seamless orchestration, scaling, and management in containerized environments.</span>
+                </div>
+            </li>
+            <li class="deployment-item">
+                <span class="deployment-icon">📈</span>
+                <div>
+                    <strong class="text-lg text-blue-700">Integrated Monitoring:</strong>
+                    <span class="deployment-description">Includes pre-configured monitoring dashboards (e.g., Grafana, Prometheus) to track agent performance, resource utilization, and operational health in real-time.</span>
+                </div>
+            </li>
+            <li class="deployment-item">
+                <span class="deployment-icon">✅</span>
+                <div>
+                    <strong class="text-lg text-blue-700">Comprehensive Testing:</strong>
+                    <span class="deployment-description">Automated test suites with 90%+ coverage ensure reliability and validate agent behavior across various scenarios before deployment.</span>
+                </div>
+            </li>
+            <li class="deployment-item">
+                <span class="deployment-icon">📄</span>
+                <div>
+                    <strong class="text-lg text-blue-700">Detailed Documentation:</strong>
+                    <span class="deployment-description">Each generated agent comes with comprehensive documentation, including getting started guides, API references, and troubleshooting tips.</span>
+                </div>
+            </li>
+            <li class="deployment-item">
+                <span class="deployment-icon">⚡</span>
+                <div>
+                    <strong class="text-lg text-blue-700">Rapid Deployment Workflow:</strong>
+                    <span class="deployment-description">Leverages <a href="https://github.com/ShaliniAnandaPhD/Neuron/actions/workflows/lego-agent-builder.yml" target="_blank" class="deployment-link">GitHub Actions for CI/CD</a>, allowing for an incredibly fast "idea to production" time, often within 5-10 minutes.</span>
+                </div>
+            </li>
+            <li class="deployment-item">
+                <span class="deployment-icon">🔗</span>
+                <div>
+                    <strong class="text-lg text-blue-700">Marketplace CI/CD Workflow:</strong>
+                    <span class="deployment-description">The marketplace itself utilizes a dedicated <a href="https://github.com/ShaliniAnandaPhD/Neuron/actions/workflows/simple-marketplace-fix.yml" target="_blank" class="deployment-link">GitHub Actions workflow</a> for its continuous integration and deployment.</span>
+                </div>
+            </li>
+        </ul>
+
+        <!-- Section for Available LEGO Modules -->
+        <h2 class="text-2xl font-semibold">🧱 Available LEGO Modules</h2>
+        <ul class="list-none p-0 mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Memory Subsystem Module -->
+            <li>
+                <div class="flex items-start">
+                    <span class="module-icon">🧠</span>
+                    <div>
+                        <strong class="text-lg text-blue-700">Memory Subsystem:</strong>
+                        <span class="module-description">EPISODIC | SEMANTIC | CONTEXTUAL. Data persistence & retrieval, context-aware learning, HIPAA compliance ready.</span>
+                    </div>
+                </div>
+            </li>
+            <!-- Reasoning Engine Module -->
+            <li>
+                <div class="flex items-start">
+                    <span class="module-icon">🔬</span>
+                    <div>
+                        <strong class="text-lg text-blue-700">Reasoning Engine:</strong>
+                        <span class="module-description">PATTERN ANALYSIS | CONTRADICTION DETECTION. Logical inference chains, causal relationship mapping, transparent decision paths.</span>
+                    </div>
+                </div>
+            </li>
+            <!-- Coordination Layer Module -->
+            <li>
+                <div class="flex items-start">
+                    <span class="module-icon">⚙️</span>
+                    <div>
+                        <strong class="text-lg text-blue-700">Coordination Layer:</strong>
+                        <span class="module-description">ORCHESTRATION | RESOURCE ALLOCATION. Multi-agent coordination, workflow automation, distributed consensus.</span>
+                    </div>
+                </div>
+            </li>
+            <!-- Perception Interface Module -->
+            <li>
+                <div class="flex items-start">
+                    <span class="module-icon">📡</span>
+                    <div>
+                        <strong class="text-lg text-blue-700">Perception Interface:</strong>
+                        <span class="module-description">VOICE | TEXT | MULTI-MODAL. Natural language processing, signal input handling, context extraction.</span>
+                    </div>
+                </div>
+            </li>
+            <!-- Expression Generator Module -->
+            <li>
+                <div class="flex items-start">
+                    <span class="module-icon">📤</span>
+                    <div>
+                        <strong class="text-lg text-blue-700">Expression Generator:</strong>
+                        <span class="module-description">TONE ADAPTATION | RESPONSE SYNTHESIS. Context-appropriate output, style matching algorithms, emotional intelligence.</span>
+                    </div>
+                </div>
+            </li>
+            <!-- Reliability Stack Module -->
+            <li>
+                <div class="flex items-start">
+                    <span class="module-icon">🛡️</span>
+                    <div>
+                        <strong class="text-lg text-blue-700">Reliability Stack:</strong>
+                        <span class="module-description">FAULT TOLERANCE | COMPLIANCE | SECURITY. Enterprise-grade protection, automatic fallback systems, audit trail generation.</span>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+</body>
+</html>
+
