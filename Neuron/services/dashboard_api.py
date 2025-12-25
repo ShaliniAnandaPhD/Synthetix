@@ -195,7 +195,7 @@ async def speak(request: Request):
     body = await request.json()
     text = body.get("text", "")
     persona = body.get("persona", "")
-    locale = body.get("locale", "en-US")
+    voice_locale = body.get("voice_locale", "")  # Optional override
     
     if not text:
         return Response(status_code=400)
@@ -204,27 +204,49 @@ async def speak(request: Request):
         client = texttospeech.TextToSpeechClient()
         input_text = texttospeech.SynthesisInput(text=text)
         
-        # Persona-based voice selection for Swarm agents
-        if persona == "fanatic":
-            # High energy American voice for The Homer
-            voice_name = "en-US-Polyglot-1"
-            language_code = "en-US"
+        # Voice pools for variety
+        HOMER_VOICES = [
+            ("en-US", "en-US-Polyglot-1"),    # American high energy
+            ("pt-BR", "pt-BR-Neural2-B"),      # Brazilian GOOOL energy
+            ("es-MX", "es-MX-Neural2-A"),      # Mexican Andrés Cantor
+            ("en-AU", "en-AU-Neural2-B"),      # Aussie excitement
+        ]
+        
+        SKEPTIC_VOICES = [
+            ("en-GB", "en-GB-Neural2-B"),      # British dry wit
+            ("de-DE", "de-DE-Neural2-B"),      # German analytical
+            ("ja-JP", "ja-JP-Neural2-C"),      # Japanese precise
+        ]
+        
+        # Select voice based on persona and optional override
+        if voice_locale:
+            # Direct locale override
+            language_code = voice_locale
+            if voice_locale == "pt-BR":
+                voice_name = "pt-BR-Neural2-B"
+            elif voice_locale == "en-GB":
+                voice_name = "en-GB-Neural2-B"
+            elif voice_locale == "es-MX":
+                voice_name = "es-MX-Neural2-A"
+            elif voice_locale == "en-AU":
+                voice_name = "en-AU-Neural2-B"
+            elif voice_locale == "de-DE":
+                voice_name = "de-DE-Neural2-B"
+            elif voice_locale == "ja-JP":
+                voice_name = "ja-JP-Neural2-C"
+            else:
+                voice_name = "en-US-Journey-D"
+                language_code = "en-US"
+        elif persona == "fanatic":
+            # Random exciting voice for The Homer
+            language_code, voice_name = random.choice(HOMER_VOICES)
         elif persona == "analyst":
-            # British voice for The Skeptic
-            voice_name = "en-GB-Neural2-B"
-            language_code = "en-GB"
+            # Random calm/analytical voice for The Skeptic
+            language_code, voice_name = random.choice(SKEPTIC_VOICES)
         else:
             # Default journey voice
             voice_name = "en-US-Journey-D"
             language_code = "en-US"
-            
-            # Override with locale if specified
-            if locale == "pt-BR":
-                language_code = "pt-BR"
-                voice_name = "pt-BR-Neural2-B"
-            elif locale == "en-GB":
-                language_code = "en-GB"
-                voice_name = "en-GB-Neural2-B"
             
         voice = texttospeech.VoiceSelectionParams(
             language_code=language_code,

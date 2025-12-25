@@ -223,7 +223,7 @@
 
             // SSE Connection
             useEffect(() => {
-                const eventSource = new EventSource('http://localhost:8000/stream');
+                const eventSource = new EventSource('https://neuron-api-582963349700.us-central1.run.app/stream');
 
                 eventSource.onopen = () => {
                     setConnectionStatus('connected');
@@ -294,7 +294,7 @@
 
             const handleSimulate = async (type, team, description) => {
                 try {
-                    const response = await fetch('http://localhost:8000/simulate_event', {
+                    const response = await fetch('https://neuron-api-582963349700.us-central1.run.app/simulate_event', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ type })
@@ -392,7 +392,7 @@
             // Updated speak function with persona support and queue
             const speak = async (text, persona = '') => {
                 try {
-                    const response = await fetch('http://localhost:8000/speak', {
+                    const response = await fetch('https://neuron-api-582963349700.us-central1.run.app/speak', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ text: text.substring(0, 500), persona })
@@ -620,6 +620,74 @@
                                     </div>
                                 </div>
 
+                                {/* ARCHITECTURE DIAGRAM */}
+                                <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-xl p-4 border border-cyan-500/30">
+                                    <h3 className="font-orbitron text-sm text-cyan-400 mb-3 uppercase tracking-wider flex items-center gap-2">
+                                        📐 System Architecture
+                                    </h3>
+                                    <div className="space-y-3 text-xs">
+                                        {/* Data Layer */}
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-8 h-8 bg-orange-500/20 rounded flex items-center justify-center">
+                                                <span className="text-sm">📡</span>
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="font-semibold text-orange-400">Confluent Kafka</div>
+                                                <div className="text-slate-500">Event Stream Ingestion</div>
+                                            </div>
+                                        </div>
+
+                                        {/* Arrow */}
+                                        <div className="flex justify-center">
+                                            <div className="w-0.5 h-4 bg-gradient-to-b from-orange-500 to-purple-500"></div>
+                                        </div>
+
+                                        {/* Processing Layer */}
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-8 h-8 bg-purple-500/20 rounded flex items-center justify-center">
+                                                <span className="text-sm">🧠</span>
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="font-semibold text-purple-400">Cloud Run (Swarm AI)</div>
+                                                <div className="text-slate-500">Multi-Agent Debate Engine</div>
+                                            </div>
+                                        </div>
+
+                                        {/* Branch */}
+                                        <div className="flex justify-center gap-8">
+                                            <div className="w-0.5 h-4 bg-gradient-to-b from-purple-500 to-green-500"></div>
+                                            <div className="w-0.5 h-4 bg-gradient-to-b from-purple-500 to-blue-500"></div>
+                                        </div>
+
+                                        {/* Output Layers */}
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div className="flex items-center gap-2 bg-slate-800/50 p-2 rounded">
+                                                <div className="w-6 h-6 bg-green-500/20 rounded flex items-center justify-center">
+                                                    <span className="text-xs">🎤</span>
+                                                </div>
+                                                <div>
+                                                    <div className="font-semibold text-green-400 text-[10px]">Cloud TTS</div>
+                                                    <div className="text-slate-500 text-[9px]">Voice Gen</div>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 bg-slate-800/50 p-2 rounded">
+                                                <div className="w-6 h-6 bg-blue-500/20 rounded flex items-center justify-center">
+                                                    <span className="text-xs">🔥</span>
+                                                </div>
+                                                <div>
+                                                    <div className="font-semibold text-blue-400 text-[10px]">Firebase</div>
+                                                    <div className="text-slate-500 text-[9px]">Hosting</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Footer */}
+                                        <div className="mt-2 pt-2 border-t border-slate-700/50 text-center text-slate-500">
+                                            Real-time SSE streaming to dashboard
+                                        </div>
+                                    </div>
+                                </div>
+
                                 {/* LOCALE SELECTOR */}
                                 <div>
                                     <h3 className="font-orbitron text-sm text-slate-400 mb-3 uppercase tracking-wider">
@@ -732,17 +800,17 @@
                                 </div>
                             </div>
                         </div>
-                    </main>
+                    </main >
 
                     {/* FOOTER */}
-                    <footer className="bg-slate-950 border-t border-slate-700/50 px-6 py-2">
+                    < footer className="bg-slate-950 border-t border-slate-700/50 px-6 py-2" >
                         <div className="flex justify-between items-center text-xs text-slate-500">
                             <span>NEURON SYSTEMS v1.0.0</span>
                             <span className="font-mono">SESSION: {Date.now().toString(36).toUpperCase()}</span>
                             <span>🔒 SECURE CHANNEL</span>
                         </div>
-                    </footer>
-                </div>
+                    </footer >
+                </div >
             );
         }
 
