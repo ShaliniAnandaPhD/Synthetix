@@ -1,0 +1,30 @@
+# Ignore large/unnecessary files for Cloud Build
+.git
+.gitignore
+*.md
+*.ipynb
+*.pyc
+__pycache__/
+.pytest_cache/
+.env
+.venv
+venv/
+node_modules/
+.firebase/
+firebase-debug.log
+*.log
+
+# Ignore heavy directories not needed for dashboard API
+neuron_core/
+scripts/
+config/
+data/
+vertex_deployment/
+tests/
+docs/
+.agent/
+.cursor/
+infra/
+notebooks/
+
+# Keep services/ and Dockerfile
