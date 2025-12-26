@@ -2933,7 +2933,7 @@ def calculate_confidence(samples: list, analysis: dict) -> float:
 @app.function(
     image=image, 
     timeout=300,
-    secrets=[modal.Secret.from_name("gcp-vertex-ai")]
+    secrets=[modal.Secret.from_name("googlecloud-secret")]
 )
 @modal.fastapi_endpoint(method="POST")
 def analyze_style_samples(request: dict):
