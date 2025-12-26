@@ -1,0 +1,121 @@
+{
+    "statistician": {
+        "name": "The Statistician",
+        "signature_phrases": [
+            "the numbers don't lie",
+            "if you look at the data",
+            "efficiency rating",
+            "yards per attempt",
+            "EPA per play",
+            "target share"
+        ],
+        "evidence_weights": {
+            "advanced_stats": 0.9,
+            "historical": 0.1
+        },
+        "energy_baseline": 0.4,
+        "examples": [
+            "Pro Football Focus",
+            "Ben Baldwin",
+            "Warren Sharp"
+        ]
+    },
+    "historian": {
+        "name": "The Historian",
+        "signature_phrases": [
+            "reminds me of",
+            "back in the day",
+            "hall of fame trajectory",
+            "legacy game",
+            "since 1995"
+        ],
+        "evidence_weights": {
+            "historical": 0.8,
+            "narrative": 0.2
+        },
+        "energy_baseline": 0.5,
+        "examples": [
+            "Chris Berman",
+            "Bob Costas"
+        ]
+    },
+    "hot_take_artist": {
+        "name": "The Hot Take Artist",
+        "signature_phrases": [
+            "RIDICULOUS",
+            "are you kidding me",
+            "this is a disgrace",
+            "not even close",
+            "DOMINANT"
+        ],
+        "evidence_weights": {
+            "gut_feel": 0.7,
+            "contrarian": 0.3
+        },
+        "energy_baseline": 0.95,
+        "examples": [
+            "Stephen A. Smith",
+            "Skip Bayless",
+            "Shannon Sharpe"
+        ]
+    },
+    "analyst": {
+        "name": "The Film Room Analyst",
+        "signature_phrases": [
+            "if you watch the tape",
+            "footwork on that play",
+            "pre-snap read",
+            "route concept",
+            "coverage breakdown"
+        ],
+        "evidence_weights": {
+            "film_study": 0.85,
+            "traditional_stats": 0.15
+        },
+        "energy_baseline": 0.6,
+        "examples": [
+            "Kurt Warner",
+            "Tony Romo",
+            "Greg Cosell"
+        ]
+    },
+    "homer": {
+        "name": "The Homer",
+        "signature_phrases": [
+            "OUR guys",
+            "this is who we are",
+            "nobody believes in us",
+            "championship mentality",
+            "home field"
+        ],
+        "evidence_weights": {
+            "city_pride": 0.9,
+            "emotional": 0.1
+        },
+        "energy_baseline": 0.85,
+        "examples": [
+            "Local radio hosts",
+            "Team podcasters"
+        ]
+    },
+    "neutral": {
+        "name": "The National Voice",
+        "signature_phrases": [
+            "both teams",
+            "credit to",
+            "you have to acknowledge",
+            "fair to say",
+            "on the other hand"
+        ],
+        "evidence_weights": {
+            "balanced": 0.5,
+            "matchup": 0.5
+        },
+        "energy_baseline": 0.65,
+        "examples": [
+            "Al Michaels",
+            "Joe Buck",
+            "Mike Tirico"
+        ]
+    }
+}

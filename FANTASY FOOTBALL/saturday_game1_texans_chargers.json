@@ -1,0 +1,902 @@
+[
+  {
+    "creator_id": "sat_texans_001",
+    "city": "Houston",
+    "archetype": "statistician",
+    "platform": "TikTok",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_002",
+    "city": "Houston",
+    "archetype": "statistician",
+    "platform": "Podcast",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_003",
+    "city": "Houston",
+    "archetype": "statistician",
+    "platform": "YouTube",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_004",
+    "city": "Houston",
+    "archetype": "statistician",
+    "platform": "TikTok",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_005",
+    "city": "Houston",
+    "archetype": "statistician",
+    "platform": "Podcast",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_006",
+    "city": "Houston",
+    "archetype": "statistician",
+    "platform": "YouTube",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_007",
+    "city": "Houston",
+    "archetype": "statistician",
+    "platform": "TikTok",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_008",
+    "city": "Houston",
+    "archetype": "historian",
+    "platform": "Podcast",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_009",
+    "city": "Houston",
+    "archetype": "historian",
+    "platform": "YouTube",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_010",
+    "city": "Houston",
+    "archetype": "historian",
+    "platform": "TikTok",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_011",
+    "city": "Houston",
+    "archetype": "historian",
+    "platform": "Podcast",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_012",
+    "city": "Houston",
+    "archetype": "historian",
+    "platform": "YouTube",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_013",
+    "city": "Houston",
+    "archetype": "historian",
+    "platform": "TikTok",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_014",
+    "city": "Houston",
+    "archetype": "hot_take_artist",
+    "platform": "Podcast",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_015",
+    "city": "Houston",
+    "archetype": "hot_take_artist",
+    "platform": "YouTube",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_016",
+    "city": "Houston",
+    "archetype": "hot_take_artist",
+    "platform": "TikTok",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_017",
+    "city": "Houston",
+    "archetype": "hot_take_artist",
+    "platform": "Podcast",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_018",
+    "city": "Houston",
+    "archetype": "hot_take_artist",
+    "platform": "YouTube",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_019",
+    "city": "Houston",
+    "archetype": "hot_take_artist",
+    "platform": "TikTok",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_020",
+    "city": "Houston",
+    "archetype": "hot_take_artist",
+    "platform": "Podcast",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_021",
+    "city": "Houston",
+    "archetype": "hot_take_artist",
+    "platform": "YouTube",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_022",
+    "city": "Houston",
+    "archetype": "analyst",
+    "platform": "TikTok",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_023",
+    "city": "Houston",
+    "archetype": "analyst",
+    "platform": "Podcast",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_024",
+    "city": "Houston",
+    "archetype": "analyst",
+    "platform": "YouTube",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_025",
+    "city": "Houston",
+    "archetype": "analyst",
+    "platform": "TikTok",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_026",
+    "city": "Houston",
+    "archetype": "analyst",
+    "platform": "Podcast",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_027",
+    "city": "Houston",
+    "archetype": "analyst",
+    "platform": "YouTube",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_028",
+    "city": "Houston",
+    "archetype": "analyst",
+    "platform": "TikTok",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_029",
+    "city": "Houston",
+    "archetype": "homer",
+    "platform": "Podcast",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_030",
+    "city": "Houston",
+    "archetype": "homer",
+    "platform": "YouTube",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_031",
+    "city": "Houston",
+    "archetype": "homer",
+    "platform": "TikTok",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_032",
+    "city": "Houston",
+    "archetype": "homer",
+    "platform": "Podcast",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_033",
+    "city": "Houston",
+    "archetype": "homer",
+    "platform": "YouTube",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_034",
+    "city": "Houston",
+    "archetype": "homer",
+    "platform": "TikTok",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_035",
+    "city": "Houston",
+    "archetype": "homer",
+    "platform": "Podcast",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_036",
+    "city": "Houston",
+    "archetype": "homer",
+    "platform": "YouTube",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_037",
+    "city": "Houston",
+    "archetype": "neutral",
+    "platform": "TikTok",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_038",
+    "city": "Houston",
+    "archetype": "neutral",
+    "platform": "Podcast",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_039",
+    "city": "Houston",
+    "archetype": "neutral",
+    "platform": "YouTube",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_texans_040",
+    "city": "Houston",
+    "archetype": "neutral",
+    "platform": "TikTok",
+    "affiliation": "Texans",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_001",
+    "city": "Los Angeles",
+    "archetype": "statistician",
+    "platform": "TikTok",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_002",
+    "city": "Los Angeles",
+    "archetype": "statistician",
+    "platform": "Podcast",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_003",
+    "city": "Los Angeles",
+    "archetype": "statistician",
+    "platform": "YouTube",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_004",
+    "city": "Los Angeles",
+    "archetype": "statistician",
+    "platform": "TikTok",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_005",
+    "city": "Los Angeles",
+    "archetype": "statistician",
+    "platform": "Podcast",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_006",
+    "city": "Los Angeles",
+    "archetype": "statistician",
+    "platform": "YouTube",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_007",
+    "city": "Los Angeles",
+    "archetype": "statistician",
+    "platform": "TikTok",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_008",
+    "city": "Los Angeles",
+    "archetype": "historian",
+    "platform": "Podcast",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_009",
+    "city": "Los Angeles",
+    "archetype": "historian",
+    "platform": "YouTube",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_010",
+    "city": "Los Angeles",
+    "archetype": "historian",
+    "platform": "TikTok",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_011",
+    "city": "Los Angeles",
+    "archetype": "historian",
+    "platform": "Podcast",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_012",
+    "city": "Los Angeles",
+    "archetype": "historian",
+    "platform": "YouTube",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_013",
+    "city": "Los Angeles",
+    "archetype": "historian",
+    "platform": "TikTok",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_014",
+    "city": "Los Angeles",
+    "archetype": "hot_take_artist",
+    "platform": "Podcast",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_015",
+    "city": "Los Angeles",
+    "archetype": "hot_take_artist",
+    "platform": "YouTube",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_016",
+    "city": "Los Angeles",
+    "archetype": "hot_take_artist",
+    "platform": "TikTok",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_017",
+    "city": "Los Angeles",
+    "archetype": "hot_take_artist",
+    "platform": "Podcast",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_018",
+    "city": "Los Angeles",
+    "archetype": "hot_take_artist",
+    "platform": "YouTube",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_019",
+    "city": "Los Angeles",
+    "archetype": "hot_take_artist",
+    "platform": "TikTok",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_020",
+    "city": "Los Angeles",
+    "archetype": "hot_take_artist",
+    "platform": "Podcast",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_021",
+    "city": "Los Angeles",
+    "archetype": "hot_take_artist",
+    "platform": "YouTube",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_022",
+    "city": "Los Angeles",
+    "archetype": "analyst",
+    "platform": "TikTok",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_023",
+    "city": "Los Angeles",
+    "archetype": "analyst",
+    "platform": "Podcast",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_024",
+    "city": "Los Angeles",
+    "archetype": "analyst",
+    "platform": "YouTube",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_025",
+    "city": "Los Angeles",
+    "archetype": "analyst",
+    "platform": "TikTok",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_026",
+    "city": "Los Angeles",
+    "archetype": "analyst",
+    "platform": "Podcast",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_027",
+    "city": "Los Angeles",
+    "archetype": "analyst",
+    "platform": "YouTube",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_028",
+    "city": "Los Angeles",
+    "archetype": "analyst",
+    "platform": "TikTok",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_029",
+    "city": "Los Angeles",
+    "archetype": "homer",
+    "platform": "Podcast",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_030",
+    "city": "Los Angeles",
+    "archetype": "homer",
+    "platform": "YouTube",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_031",
+    "city": "Los Angeles",
+    "archetype": "homer",
+    "platform": "TikTok",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_032",
+    "city": "Los Angeles",
+    "archetype": "homer",
+    "platform": "Podcast",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_033",
+    "city": "Los Angeles",
+    "archetype": "homer",
+    "platform": "YouTube",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_034",
+    "city": "Los Angeles",
+    "archetype": "homer",
+    "platform": "TikTok",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_035",
+    "city": "Los Angeles",
+    "archetype": "homer",
+    "platform": "Podcast",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_036",
+    "city": "Los Angeles",
+    "archetype": "homer",
+    "platform": "YouTube",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_037",
+    "city": "Los Angeles",
+    "archetype": "neutral",
+    "platform": "TikTok",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_038",
+    "city": "Los Angeles",
+    "archetype": "neutral",
+    "platform": "Podcast",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_039",
+    "city": "Los Angeles",
+    "archetype": "neutral",
+    "platform": "YouTube",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_chargers_040",
+    "city": "Los Angeles",
+    "archetype": "neutral",
+    "platform": "TikTok",
+    "affiliation": "Chargers",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_neutral_001",
+    "city": "Dallas",
+    "archetype": "statistician",
+    "platform": "TikTok",
+    "affiliation": "Neutral",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_neutral_002",
+    "city": "Philadelphia",
+    "archetype": "statistician",
+    "platform": "Podcast",
+    "affiliation": "Neutral",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_neutral_003",
+    "city": "Pittsburgh",
+    "archetype": "statistician",
+    "platform": "YouTube",
+    "affiliation": "Neutral",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_neutral_004",
+    "city": "Baltimore",
+    "archetype": "historian",
+    "platform": "TikTok",
+    "affiliation": "Neutral",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_neutral_005",
+    "city": "Buffalo",
+    "archetype": "historian",
+    "platform": "Podcast",
+    "affiliation": "Neutral",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_neutral_006",
+    "city": "Miami",
+    "archetype": "historian",
+    "platform": "YouTube",
+    "affiliation": "Neutral",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_neutral_007",
+    "city": "Las Vegas",
+    "archetype": "hot_take_artist",
+    "platform": "TikTok",
+    "affiliation": "Neutral",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_neutral_008",
+    "city": "Seattle",
+    "archetype": "hot_take_artist",
+    "platform": "Podcast",
+    "affiliation": "Neutral",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_neutral_009",
+    "city": "San Francisco",
+    "archetype": "hot_take_artist",
+    "platform": "YouTube",
+    "affiliation": "Neutral",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_neutral_010",
+    "city": "Chicago",
+    "archetype": "hot_take_artist",
+    "platform": "TikTok",
+    "affiliation": "Neutral",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_neutral_011",
+    "city": "Dallas",
+    "archetype": "analyst",
+    "platform": "Podcast",
+    "affiliation": "Neutral",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_neutral_012",
+    "city": "Philadelphia",
+    "archetype": "analyst",
+    "platform": "YouTube",
+    "affiliation": "Neutral",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_neutral_013",
+    "city": "Pittsburgh",
+    "archetype": "analyst",
+    "platform": "TikTok",
+    "affiliation": "Neutral",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_neutral_014",
+    "city": "Baltimore",
+    "archetype": "analyst",
+    "platform": "Podcast",
+    "affiliation": "Neutral",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_neutral_015",
+    "city": "Buffalo",
+    "archetype": "homer",
+    "platform": "YouTube",
+    "affiliation": "Neutral",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_neutral_016",
+    "city": "Miami",
+    "archetype": "homer",
+    "platform": "TikTok",
+    "affiliation": "Neutral",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_neutral_017",
+    "city": "Las Vegas",
+    "archetype": "homer",
+    "platform": "Podcast",
+    "affiliation": "Neutral",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_neutral_018",
+    "city": "Seattle",
+    "archetype": "neutral",
+    "platform": "YouTube",
+    "affiliation": "Neutral",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_neutral_019",
+    "city": "San Francisco",
+    "archetype": "neutral",
+    "platform": "TikTok",
+    "affiliation": "Neutral",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  },
+  {
+    "creator_id": "sat_neutral_020",
+    "city": "Chicago",
+    "archetype": "neutral",
+    "platform": "Podcast",
+    "affiliation": "Neutral",
+    "game": "Texans @ Chargers",
+    "game_time": "1:30 PM PT"
+  }
+]

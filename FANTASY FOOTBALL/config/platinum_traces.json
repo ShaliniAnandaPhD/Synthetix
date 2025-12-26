@@ -1,0 +1,128 @@
+{
+    "houston:touchdown": [
+        "The TEXANS just scored! That's how you execute in the red zone!",
+        "TOUCHDOWN HOUSTON! This offense is clicking right now!",
+        "Our guys showing everyone what this team is capable of!",
+        "That's the kind of play that changes games. Houston is ROLLING!",
+        "CJ Stroud putting on a CLINIC! Touchdown Texans!"
+    ],
+    "houston:interception": [
+        "UNBELIEVABLE! Houston defense just made the play of the game!",
+        "That's what I'm talking about! CHAMPIONSHIP mentality on display!",
+        "THIS IS WHY WE BELIEVE! What a pick!",
+        "The Texans defense showing up when it matters most!",
+        "Momentum shift! Houston takes it away!"
+    ],
+    "houston:generic": [
+        "Houston making moves here, this could be significant.",
+        "The Texans showing what they're made of in this moment.",
+        "Key play for Houston - this is the kind of execution we need.",
+        "Interesting decision by the Texans. Let's see how this develops.",
+        "Houston looking to build on this momentum."
+    ],
+    "los_angeles:touchdown": [
+        "TOUCHDOWN CHARGERS! Justin Herbert doing Justin Herbert things!",
+        "LA strikes again! This offense is UNSTOPPABLE right now!",
+        "Bolt up! That's how you finish a drive!",
+        "Herbert to the end zone - NOBODY does it better!",
+        "The Chargers are on FIRE! Touchdown Los Angeles!"
+    ],
+    "los_angeles:interception": [
+        "PICKED OFF! The Chargers defense making a statement!",
+        "What a play by LA! That's a game-changer right there!",
+        "The defense showing up BIG for the Chargers!",
+        "Turnover LA! This is exactly what they needed!",
+        "Championship-caliber defense from the Chargers!"
+    ],
+    "los_angeles:generic": [
+        "The Chargers moving the chains here, looking methodical.",
+        "LA making a statement with this drive.",
+        "Key moment for the Chargers - execution will be critical.",
+        "Los Angeles looking to capitalize on this opportunity.",
+        "The Chargers offense showing patience and composure."
+    ],
+    "baltimore:touchdown": [
+        "LAMAR JACKSON DOES IT AGAIN! TOUCHDOWN RAVENS!",
+        "Nobody can stop this man! Baltimore in the end zone!",
+        "The MVP is COOKING! Ravens score!",
+        "That's Ravens football right there - UNSTOPPABLE!",
+        "Lamar making it look EASY! Touchdown Baltimore!"
+    ],
+    "baltimore:interception": [
+        "THE RAVENS DEFENSE! What a pick!",
+        "Baltimore's secondary showing why they're ELITE!",
+        "That's the kind of play that wins championships!",
+        "TURNOVER RAVENS! This defense is LEGIT!",
+        "Game-changing play by Baltimore's defense!"
+    ],
+    "baltimore:generic": [
+        "The Ravens controlling the tempo here.",
+        "Baltimore doing what Baltimore does - physical, dominant football.",
+        "Key possession for the Ravens coming up.",
+        "Lamar and company looking to extend this drive.",
+        "The Ravens offense finding their rhythm."
+    ],
+    "green_bay:touchdown": [
+        "TOUCHDOWN GREEN BAY! Lambeau is ROCKING!",
+        "The Pack is BACK! Jordan Love delivers!",
+        "GO PACK GO! That's how you score in the frozen tundra!",
+        "Green Bay strikes! The Packers faithful are going CRAZY!",
+        "The Lambeau magic is REAL! Touchdown Wisconsin!"
+    ],
+    "green_bay:interception": [
+        "PICKED! The Packers defense making Titletown proud!",
+        "Green Bay takes it away! What a play!",
+        "The defense showing up at Lambeau! Turnover Packers!",
+        "That's PACKERS football! Championship defense!",
+        "The frozen tundra claims another victim! Interception Green Bay!"
+    ],
+    "green_bay:generic": [
+        "Green Bay moving the ball well, methodical as always.",
+        "The Packers looking to establish their ground game here.",
+        "Key moment at Lambeau - the crowd is into this one.",
+        "Jordan Love reading the defense, making good decisions.",
+        "The Pack controlling the clock, wearing them down."
+    ],
+    "statistician": [
+        "The numbers tell the story here - 78% completion rate in the red zone tells you everything.",
+        "If you look at the EPA per play, this offense ranks in the top 5 league-wide.",
+        "The efficiency metrics are off the charts - 8.3 yards per attempt is ELITE.",
+        "According to Pro Football Focus, this is the highest-graded performance of the season.",
+        "The data doesn't lie - target share of 32% makes this the clear optimal play."
+    ],
+    "historian": [
+        "This performance reminds me of Montana in his prime - the footwork, the vision.",
+        "Back in the day, we called this a legacy game. History is being made.",
+        "You have to go back to the 1996 season to find a comparable stretch.",
+        "Hall of fame trajectory right here - mark my words, we're witnessing greatness.",
+        "The legends of the game would tip their caps to this performance."
+    ],
+    "hot_take_artist": [
+        "Are you KIDDING me?! This is RIDICULOUS! NOBODY saw this coming!",
+        "I've been saying this for WEEKS and everyone called me crazy!",
+        "This is NOT even close! Absolutely DOMINANT performance!",
+        "UNBELIEVABLE! And people had the AUDACITY to doubt this team!",
+        "This is a DISGRACE by the defense! PATHETIC showing!"
+    ],
+    "analyst": [
+        "If you watch the tape, the footwork on that play was immaculate.",
+        "The pre-snap read was beautiful - he identified the coverage immediately.",
+        "That route concept is why this offense is so difficult to defend.",
+        "Watch the technique on the coverage breakdown - textbook stuff.",
+        "The film shows consistent execution of this concept all season."
+    ],
+    "homer": [
+        "OUR guys came to PLAY today! This is who we ARE!",
+        "Nobody believes in us? Good! We don't need them!",
+        "This is CHAMPIONSHIP mentality right here! HOME FIELD ADVANTAGE!",
+        "WE are the best team in football and it's not even close!",
+        "The kingdom is THRIVING! Our dynasty continues!"
+    ],
+    "neutral": [
+        "Credit to both teams for a hard-fought game here.",
+        "You have to acknowledge the execution on that play.",
+        "Fair to say this could go either way at this point.",
+        "Both teams have made adjustments - this is quality football.",
+        "On the other hand, the opposing team has shown resilience."
+    ]
+}
