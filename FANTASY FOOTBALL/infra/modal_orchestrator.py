@@ -411,11 +411,11 @@ image = (
         "weave",                      # Weave for tracing
     )
     .add_local_dir(
-        local_path="../src",
+        local_path="src",
         remote_path="/root/src"
     )
     .add_local_dir(
-        local_path="../config",
+        local_path="config",
         remote_path="/root/config"
     )
 )
@@ -3057,10 +3057,9 @@ Return ONLY the JSON object, no other text."""
         project_id = os.environ.get("GCP_PROJECT_ID", "leafy-sanctuary-476515-t2")
         
         if credentials_json:
-            # Decode base64 and write credentials to temp file
-            creds_data = base64.b64decode(credentials_json)
-            with tempfile.NamedTemporaryFile(mode='wb', delete=False, suffix='.json') as f:
-                f.write(creds_data)
+            # Write raw JSON credentials to temp file (matches TTS approach)
+            with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
+                f.write(credentials_json)
                 creds_path = f.name
             
             os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = creds_path
