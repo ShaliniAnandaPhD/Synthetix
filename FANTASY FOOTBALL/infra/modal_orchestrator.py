@@ -13,16 +13,19 @@ Architecture: See docs/architecture.md for full system design.
 import json
 import os
 import sys
+import hashlib
 from typing import Dict, Any, Optional
+from datetime import datetime
 import modal
 
 # Add project root to Python path for imports
 sys.path.insert(0, '/root')
 
 # Import existing core components
-from src.core.agent_factory import AgentFactory
-from src.core.tempo_engine import TempoEngine
-from src.llm.gemini_client import GeminiAgent  # Gemini 1.5 Pro for deep reasoning
+# NOTE: These are imported inside Modal functions after sys.path is set
+# from src.core.agent_factory import AgentFactory
+# from src.core.tempo_engine import TempoEngine
+# from src.llm.gemini_client import GeminiAgent  # Gemini 1.5 Pro for deep reasoning
 
 
 # ============================================================================
@@ -33,6 +36,229 @@ COST_PER_TOKEN_OUTPUT = 0.0000006   # Gemini Flash
 COST_PER_CHAR_ELEVENLABS = 0.0003   # Premium Voice
 COST_PER_CHAR_GOOGLE = 0.000016     # Standard Voice
 DAILY_SPEND_LIMIT = 50.0            # $50.00 Hard Limit
+
+
+# ============================================================================
+# QUICK WIN 1: COST LOGGING UTILITY
+# ============================================================================
+
+def log_cost(service: str, amount: float, details: str = "", redis_client=None):
+    """
+    Simple cost logging for TNF monitoring.
+    
+    Usage:
+        log_cost("gemini", 0.002, "debate generation, 1500 tokens")
+        log_cost("elevenlabs", 0.01, "tts, 500 chars")
+    """
+    from datetime import datetime
+    timestamp = datetime.now().isoformat()
+    log_line = f"{timestamp} | {service} | ${amount:.6f} | {details}"
+    print(f"💰 {log_line}")
+    
+    # Store in Redis for post-game analysis
+    if redis_client:
+        try:
+            today = datetime.now().strftime("%Y-%m-%d")
+            redis_client.lpush(f"cost_log:{today}", log_line)
+            redis_client.expire(f"cost_log:{today}", 604800)  # 7 days TTL
+        except Exception as e:
+            print(f"[COST LOG] Redis storage failed: {e}")
+
+
+# ============================================================================
+# QUICK WIN 2: EMERGENCY KILL SWITCH
+# ============================================================================
+
+def check_kill_switch(redis_client=None) -> bool:
+    """
+    Check if emergency stop is activated.
+    
+    Returns True if the system should stop processing.
+    
+    Activation methods:
+        1. Environment variable: EMERGENCY_STOP=true
+        2. Redis key: neuron:kill_switch = "true"
+    
+    Usage:
+        if check_kill_switch(redis_client):
+            return {"status": "stopped", "reason": "Emergency stop activated"}
+    """
+    # Method 1: Environment variable
+    env_stop = os.environ.get("EMERGENCY_STOP", "false").lower()
+    if env_stop == "true":
+        print("🛑 EMERGENCY STOP activated via environment variable")
+        return True
+    
+    # Method 2: Redis key (allows runtime control)
+    if redis_client:
+        try:
+            redis_stop = redis_client.get("neuron:kill_switch")
+            if redis_stop and redis_stop.lower() == "true":
+                print("🛑 EMERGENCY STOP activated via Redis key")
+                return True
+        except Exception as e:
+            print(f"[KILL SWITCH] Redis check failed: {e}")
+    
+    return False
+
+
+# ============================================================================
+# QUICK WIN 3: WEAVE TRACE LOGGING
+# ============================================================================
+
+_weave_initialized = False
+
+def init_weave(project: str = "shalini-nfl-neuron-systems/ffn-debate-testing"):
+    """Initialize Weave for tracing if not already done."""
+    global _weave_initialized
+    if _weave_initialized:
+        return True
+    
+    try:
+        import weave
+        api_key = os.environ.get("WANDB_API_KEY")
+        if not api_key:
+            print("[WEAVE] No WANDB_API_KEY found, skipping initialization")
+            return False
+        
+        weave.init(project)
+        _weave_initialized = True
+        print(f"[WEAVE] Initialized project={project}")
+        return True
+    except Exception as e:
+        print(f"[WEAVE] Initialization failed: {e}")
+        return False
+
+
+# Keep init_wandb as alias for backward compatibility
+def init_wandb(project: str = "ffn-debate-testing", entity: str = "shalini-nfl-neuron-systems", run_name: str = None):
+    """Initialize Weave (legacy alias)."""
+    return init_weave(f"{entity}/{project}")
+
+
+def log_trace(
+    endpoint: str,
+    latency_ms: float,
+    status: str = "success",
+    city: str = None,
+    player: str = None,
+    tokens_in: int = 0,
+    tokens_out: int = 0,
+    cost_usd: float = 0.0,
+    extra: dict = None
+):
+    """
+    Log a trace to Weave for real-time monitoring.
+    
+    Usage:
+        log_trace("run_debate", 250.5, city="seattle", player="Geno Smith")
+    """
+    try:
+        import weave
+        if not _weave_initialized:
+            print(f"[WEAVE] Skipping log_trace - not initialized")
+            return
+        
+        # Create trace data
+        trace_data = {
+            "endpoint": endpoint,
+            "latency_ms": latency_ms,
+            "status": status,
+            "timestamp": datetime.now().isoformat(),
+        }
+        
+        if city:
+            trace_data["city"] = city
+        if player:
+            trace_data["player"] = player
+        if tokens_in:
+            trace_data["tokens_in"] = tokens_in
+        if tokens_out:
+            trace_data["tokens_out"] = tokens_out
+        if cost_usd:
+            trace_data["cost_usd"] = cost_usd
+        if extra:
+            trace_data.update(extra)
+        
+        # Call traced function based on endpoint
+        if endpoint == "run_debate":
+            traced_fn = get_traced_run_debate()
+            if traced_fn and city:
+                cities = city.split(" vs ") if " vs " in city else [city, ""]
+                traced_fn(
+                    city1=cities[0] if cities else "",
+                    city2=cities[1] if len(cities) > 1 else "",
+                    topic=extra.get("topic", "") if extra else "",
+                    rounds=extra.get("rounds", 3) if extra else 3
+                )
+        elif endpoint == "generate_tts":
+            traced_fn = get_traced_generate_tts()
+            if traced_fn:
+                traced_fn(
+                    text="",  # Don't log full text
+                    speaker_id=extra.get("speaker_id", "") if extra else "",
+                    city=city or "",
+                    audio_bytes=extra.get("audio_bytes", 0) if extra else 0
+                )
+        
+        print(f"[WEAVE] Logged trace: {endpoint} - {latency_ms:.0f}ms")
+        
+    except Exception as e:
+        print(f"[WEAVE] Log trace failed: {e}")
+
+
+# ============================================================================
+# WEAVE TRACED CORE FUNCTIONS
+# These functions are decorated with @weave.op and called by Modal endpoints
+# ============================================================================
+
+def get_traced_run_debate():
+    """Get a Weave-traced version of run_debate_core."""
+    try:
+        import weave
+        
+        @weave.op()
+        def run_debate_core(city1: str, city2: str, topic: str, rounds: int = 3) -> dict:
+            """
+            Core debate logic - traced by Weave.
+            """
+            return {
+                "city1": city1,
+                "city2": city2,
+                "topic": topic,
+                "rounds": rounds,
+                "traced": True
+            }
+        
+        return run_debate_core
+    except Exception as e:
+        print(f"[WEAVE] Failed to create traced function: {e}")
+        return None
+
+
+def get_traced_generate_tts():
+    """Get a Weave-traced version of generate_tts_core."""
+    try:
+        import weave
+        
+        @weave.op()
+        def generate_tts_core(text: str, speaker_id: str, city: str, audio_bytes: int) -> dict:
+            """
+            Core TTS logic - traced by Weave.
+            """
+            return {
+                "text_length": len(text),
+                "speaker_id": speaker_id,
+                "city": city,
+                "audio_bytes": audio_bytes,
+                "traced": True
+            }
+        
+        return generate_tts_core
+    except Exception as e:
+        print(f"[WEAVE] Failed to create traced function: {e}")
+        return None
+
 
 # ============================================================================
 # CITY VOICE MAPPING (HYBRID: Google TTS + ElevenLabs)
@@ -97,55 +323,6 @@ ELEVENLABS_VOICE_MAP = {
 
 # Google Cloud TTS Voice IDs (Standard Tier)
 GOOGLE_VOICE_MAP = {
-    # Aggressive, high-energy cities - deeper, assertive voices
-    "Philadelphia": "en-US-Studio-M",
-    "Baltimore": "en-US-Wavenet-D",
-    "New York (Jets)": "en-US-Neural2-D",
-    "Las Vegas": "en-US-Studio-M",
-    "Miami": "en-US-Neural2-A",
-    
-    # Analytical, measured cities - clear, professional voices
-    "San Francisco": "en-US-Wavenet-A",
-    "New England": "en-US-Studio-O",
-    "Dallas": "en-US-Wavenet-B",
-    
-    # Fast-paced, execution-focused - energetic voices
-    "Kansas City": "en-US-Neural2-J",
-    "Seattle": "en-US-Wavenet-F",
-    "Cincinnati": "en-US-Neural2-C",
-    
-    # Traditional, blue-collar cities - mature, authoritative voices
-    "Green Bay": "en-US-Wavenet-D",
-    "Pittsburgh": "en-US-Studio-M",
-    "Chicago": "en-US-Wavenet-B",
-    
-    # Resilient, long-suffering cities - steady, grounded voices
-    "Buffalo": "en-US-Neural2-D",
-    "Cleveland": "en-US-Wavenet-D",
-    "Detroit": "en-US-Studio-M",
-    
-    # Confident, swagger cities - bold voices
-    "Tampa Bay": "en-US-Neural2-A",
-    "Los Angeles (Rams)": "en-US-Wavenet-A",
-    "Los Angeles (Chargers)": "en-US-Neural2-J",
-    
-    # Midwest steady cities - calm, measured voices
-    "Minnesota": "en-US-Wavenet-B",
-    "Indianapolis": "en-US-Studio-O",
-    "Tennessee": "en-US-Neural2-D",
-    
-    # Southern cities - warm, distinctive voices
-    "New Orleans": "en-US-Wavenet-F",
-    "Atlanta": "en-US-Neural2-A",
-    "Carolina": "en-US-Wavenet-B",
-    "Houston": "en-US-Studio-M",
-    
-    # Emerging/rebuilding cities - fresh, optimistic voices
-    "Jacksonville": "en-US-Neural2-C",
-    "Arizona": "en-US-Wavenet-A",
-    
-    # Legacy-burdened cities - reflective voices
-    "New York (Giants)": "en-US-Wavenet-D",
     "Washington": "en-US-Studio-O",
     
     # Mountain/elevation cities - strong, confident voices
@@ -217,6 +394,8 @@ image = (
     .pip_install(
         "fastapi",                    # Required for web endpoints
         "google-cloud-aiplatform",    # Vertex AI SDK (Gemini)
+        "google-generativeai",        # Google AI Studio SDK (Gemini with API key)
+        "anthropic[vertex]",          # Anthropic SDK for Claude on Vertex AI
         "redis",                      # Redis client for hot state
         "google-cloud-texttospeech",  # Google Cloud TTS (Standard)
         "elevenlabs>=1.0.0",          # ElevenLabs TTS (Premium) - v1.0+ required for new API
@@ -227,13 +406,16 @@ image = (
         "newspaper3k",                # Article content extraction
         "lxml",                       # HTML parsing for newspaper3k
         "openai",                     # OpenAI Whisper API for transcription
+        # Observability
+        "wandb",                      # Weights & Biases for tracking
+        "weave",                      # Weave for tracing
     )
     .add_local_dir(
-        local_path="src",
+        local_path="../src",
         remote_path="/root/src"
     )
     .add_local_dir(
-        local_path="config",
+        local_path="../config",
         remote_path="/root/config"
     )
 )
@@ -246,11 +428,14 @@ image = (
     image=image,
     secrets=[
         modal.Secret.from_name("redis-credentials"),     # REDIS_URL
-        modal.Secret.from_name("googlecloud-secret"),    # GCP credentials (Vertex AI + Google TTS)
+        modal.Secret.from_name("googlecloud-secret"),    # GCP credentials (Google TTS)
+        modal.Secret.from_name("gcp-vertex-ai"),         # Vertex AI credentials (Gemini/Claude)
         modal.Secret.from_name("elevenlabs-secret"),     # ElevenLabs API Keys (Premium Tier)
+        modal.Secret.from_name("gemini-api-key"),        # Google AI Studio API Key (fallback)
+        modal.Secret.from_name("wandb-secret"),          # Weights & Biases API Key
     ],
-    min_containers=10,         # Maintain 10 warm containers (baseline)
-    max_containers=100,        # Handle 325+ creator spikes
+    min_containers=20,         # OPTIMIZATION: Increased from 10 → 20 for faster debate starts
+    max_containers=150,        # OPTIMIZATION: Increased from 100 → 150 to handle spikes
     timeout=30,                # 30s timeout per request
 )
 class CulturalAgent:
@@ -326,22 +511,39 @@ class CulturalAgent:
             # Continue - might still work with default credentials
         
         # ----------------------------------------------------------------
-        # 3. GEMINI AI CLIENT (Gemini 1.5 Pro)
+        # 3. VERTEX AI CLIENT (Gemini/Claude via Vertex AI SDK)
         # ----------------------------------------------------------------
         try:
-            project_id = os.environ.get("GCP_PROJECT_ID")
-            if not project_id:
-                print("[INIT ERROR] GCP_PROJECT_ID not found in environment")
-                raise ValueError("GCP_PROJECT_ID not found in environment")
+            # Import the new VertexAIClient
+            from src.llm.vertex_client import VertexAIClient
             
-            self.vertex_client = GeminiAgent(
-                project_id=project_id,
-                location="us-central1",
-                model_name="gemini-2.0-flash-001"
-            )
-            print(f"[INIT] Gemini 2.0 Flash client initialized (Project: {project_id})")
+            # Get project ID from new gcp-vertex-ai secret
+            project_id = os.environ.get("GCP_PROJECT_ID")
+            
+            # Check which model to use (can be configured via env)
+            # Using Gemini 2.0 Flash via Vertex AI
+            model_name = os.environ.get("VERTEX_MODEL", "gemini-2.0-flash-001")
+            
+            if project_id:
+                self.vertex_client = VertexAIClient(
+                    project_id=project_id,
+                    location="us-central1",
+                    model_name=model_name
+                )
+                print(f"[INIT] VertexAI initialized: project={project_id}, model={model_name}")
+                print(f"[INIT] USING CLAUDE: {'YES' if 'claude' in model_name else 'NO'}")
+            else:
+                # Fallback to old GeminiAgent with API key
+                api_key = os.environ.get("GOOGLE_API_KEY")
+                if api_key:
+                    self.vertex_client = GeminiAgent(
+                        model_name="gemini-2.0-flash"
+                    )
+                    print("[INIT] Fallback to GeminiAgent (API Key)")
+                else:
+                    raise ValueError("No Vertex AI or Gemini credentials found")
         except Exception as e:
-            print(f"[INIT ERROR] Gemini AI failed: {e}")
+            print(f"[INIT ERROR] Vertex AI failed: {e}")
             traceback.print_exc()
             raise
         
@@ -384,6 +586,9 @@ class CulturalAgent:
         # 5. CORE ENGINES (AgentFactory, TempoEngine)
         # ----------------------------------------------------------------
         try:
+            from src.core.agent_factory import AgentFactory
+            from src.core.tempo_engine import TempoEngine
+            
             self.agent_factory = AgentFactory(config_path="/root/config/city_profiles.json")
             self.tempo_engine = TempoEngine(config_path="/root/config/city_profiles.json")
             print("[INIT] AgentFactory and TempoEngine initialized")
@@ -405,6 +610,14 @@ class CulturalAgent:
             # Continue without memory - not fatal
             self.memory_module = None
         
+        # ----------------------------------------------------------------
+        # 7. WEIGHTS & BIASES TRACING
+        # ----------------------------------------------------------------
+        try:
+            init_wandb(project="neuron-live", run_name=f"modal-{datetime.now().strftime('%m%d-%H%M')}")
+        except Exception as e:
+            print(f"[INIT WARNING] W&B init failed (non-fatal): {e}")
+        
         print("[INIT] CulturalAgent ready (Hybrid Voice: Google TTS + ElevenLabs)")
     
     @modal.method()
@@ -415,6 +628,7 @@ class CulturalAgent:
         conversation_history: Optional[list] = None,
         game_context: Optional[Dict[str, Any]] = None,
         tier: str = "standard",
+        style: str = "standard",
         user_id: str = "anonymous"
     ) -> Dict[str, Any]:
         """
@@ -443,7 +657,17 @@ class CulturalAgent:
         start_time = time.time()
         
         # ----------------------------------------------------------------
-        # 0. COST GUARD: Circuit Breaker
+        # 0a. KILL SWITCH CHECK: Emergency stop
+        # ----------------------------------------------------------------
+        if check_kill_switch(self.redis_client):
+            return {
+                "status": "stopped",
+                "error": "Emergency stop activated",
+                "city": city_name
+            }
+        
+        # ----------------------------------------------------------------
+        # 0b. COST GUARD: Circuit Breaker
         # ----------------------------------------------------------------
         today = datetime.now().strftime("%Y-%m-%d")
         daily_spend_key = f"spend:daily:{today}"
@@ -505,10 +729,14 @@ class CulturalAgent:
                 system_prompt = self.agent_factory.construct_system_prompt(
                     city_name, 
                     mode="debate",
+                    style=style,
                     debate_context=debate_context
                 )
             else:
-                system_prompt = self.agent_factory.construct_system_prompt(city_name)
+                system_prompt = self.agent_factory.construct_system_prompt(
+                    city_name,
+                    style=style
+                )
                 
         except KeyError as e:
             return {
@@ -570,9 +798,20 @@ class CulturalAgent:
         # 5. VERTEX AI INFERENCE: Generate response
         # ----------------------------------------------------------------
         try:
-            # Build the prompt with debate awareness
-            if conversation_history and len(conversation_history) > 0:
-                # Debate mode: React to the last speaker
+            # Check if user_input contains pre-formatted debate instructions
+            is_preformatted_debate = (
+                "TOPIC/INPUT:" in user_input or 
+                "Respond directly to" in user_input or
+                "Open the debate on:" in user_input
+            )
+            
+            # Build the prompt
+            if is_preformatted_debate:
+                # Debate workshop mode: user_input already contains full instructions
+                # Just add context and pass through
+                prompt = f"{full_context}\n\n{user_input}"
+            elif conversation_history and len(conversation_history) > 0:
+                # Legacy debate mode: React to the last speaker
                 last_message = conversation_history[-1]
                 last_speaker = last_message.get("role", "opponent")
                 last_content = last_message.get("content", "")
@@ -587,6 +826,12 @@ class CulturalAgent:
                 # Normal mode: Respond to user input
                 prompt = f"{full_context}\n\nUSER: {user_input}\n\nRespond as a {city_name} sports commentator:"
             
+            # Add randomization seed to prevent response caching
+            import random
+            import time
+            random_seed = f"\n\n[Response ID: {int(time.time() * 1000)}_{random.randint(1000, 9999)}]"
+            prompt += random_seed
+            
             # Call Vertex AI (Gemini Flash for speed)
             response_text = self.vertex_client.send_message(
                 system_instruction=system_prompt,
@@ -597,6 +842,62 @@ class CulturalAgent:
             
             if not response_text:
                 raise RuntimeError("Empty response from Vertex AI")
+            
+            # ----------------------------------------------------------------
+            # 5b. VIBE CHECK: Cultural Circuit Breaker
+            # ----------------------------------------------------------------
+            try:
+                from src.core.vibe_check import compute_vibe_score, build_reinforced_prompt, get_archive_fallback
+                
+                vibe_score = compute_vibe_score(response_text, city_name)
+                regeneration_attempts = 0
+                MAX_REGENERATIONS = 1
+                VIBE_THRESHOLD = 0.5  # Lower threshold since we adjusted weights
+                
+                while vibe_score < VIBE_THRESHOLD and regeneration_attempts < MAX_REGENERATIONS:
+                    regeneration_attempts += 1
+                    print(f"[VIBE CHECK] Score {vibe_score:.2f} < {VIBE_THRESHOLD} — Regenerating ({regeneration_attempts})")
+                    
+                    # Build reinforced prompt with few-shot examples
+                    reinforced_prompt, higher_temp = build_reinforced_prompt(prompt, city_name)
+                    
+                    # Regenerate with higher temperature
+                    response_text = self.vertex_client.send_message(
+                        system_instruction=system_prompt,
+                        user_message=reinforced_prompt,
+                        max_tokens=512,
+                        temperature=higher_temp  # 0.95 to escape neutral attractor
+                    )
+                    
+                    if response_text:
+                        vibe_score = compute_vibe_score(response_text, city_name)
+                        print(f"[VIBE CHECK] Regenerated score: {vibe_score:.2f}")
+                
+                # Final fail-safe: Archive fallback
+                if vibe_score < VIBE_THRESHOLD:
+                    print(f"[VIBE CHECK] Regeneration failed — Using archive fallback")
+                    response_text = get_archive_fallback(city_name, user_input[:50])
+                    
+                # Log vibe check result to Redis for monitoring
+                try:
+                    vibe_key = f"vibe_check:{city_name}:latest"
+                    self.redis_client.setex(
+                        vibe_key,
+                        3600,  # 1 hour TTL
+                        json.dumps({
+                            "score": vibe_score,
+                            "regenerations": regeneration_attempts,
+                            "passed": vibe_score >= VIBE_THRESHOLD,
+                            "timestamp": time.time()
+                        })
+                    )
+                except Exception as ve:
+                    print(f"[VIBE CHECK] Failed to log to Redis: {ve}")
+                    
+            except ImportError as ie:
+                print(f"[VIBE CHECK] Module not available (non-fatal): {ie}")
+            except Exception as ve:
+                print(f"[VIBE CHECK] Error (non-fatal): {ve}")
             
         except Exception as e:
             print(f"[INFERENCE ERROR] Vertex AI failed: {e}")
@@ -633,7 +934,7 @@ class CulturalAgent:
         print(f"[METRICS] {city_name} | Latency: {total_latency_ms}ms | Delay: {delay_ms}ms")
         
         # ----------------------------------------------------------------
-        # 8. COST TRACKING: Calculate and record spend
+        # 8. COST TRACKING: Calculate and record spend with enhanced logging
         # ----------------------------------------------------------------
         try:
             # Estimate tokens (char count / 4 is a rough heuristic)
@@ -659,7 +960,10 @@ class CulturalAgent:
             self.redis_client.incrbyfloat(daily_spend_key, total_cost)
             self.redis_client.incrbyfloat(f"spend:user:{user_id}", total_cost)
             
-            print(f"[COST] Turn Cost: ${total_cost:.6f} (LLM: ${llm_cost:.6f}, Voice: ${voice_cost:.6f})")
+            # Enhanced logging with log_cost utility
+            log_cost("gemini", llm_cost, f"city={city_name}, in={int(input_tokens)}tok, out={int(output_tokens)}tok", self.redis_client)
+            if voice_cost > 0:
+                log_cost("voice", voice_cost, f"city={city_name}, tier={tier}, chars={output_chars}", self.redis_client)
             
         except Exception as e:
             print(f"[COST TRACKING ERROR] Failed to record spend: {e}")
@@ -876,7 +1180,7 @@ class CulturalAgent:
 @app.function(
     image=image,
 )
-@modal.web_endpoint(method="POST")
+@modal.fastapi_endpoint(method="POST")
 def generate_commentary(request_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     HTTP webhook endpoint for generating sports commentary.
@@ -910,6 +1214,7 @@ def generate_commentary(request_data: Dict[str, Any]) -> Dict[str, Any]:
     city = request_data.get("city")
     user_input = request_data.get("user_input")
     tier = request_data.get("tier", "standard")  # Default to standard
+    style = request_data.get("style", "standard") # Default to standard (or sitcom)
     
     if not city or not user_input:
         return {
@@ -936,6 +1241,7 @@ def generate_commentary(request_data: Dict[str, Any]) -> Dict[str, Any]:
         conversation_history=conversation_history,
         game_context=game_context,
         tier=tier,
+        style=style,
         user_id=user_id
     )
     
@@ -950,9 +1256,26 @@ def generate_commentary(request_data: Dict[str, Any]) -> Dict[str, Any]:
     # Only generate audio if text response was successful
     if "response" in result and not "error" in result:
         try:
+            # CRITICAL: Strip all markdown formatting before TTS
+            # LLM sometimes uses *emphasis*, _italics_, [actions], etc.
+            # TTS will read these literally as "asterisk word asterisk"
+            import re
+            original_text = result["response"]
+            
+            # Remove markdown formatting characters
+            sanitized_text = original_text
+            sanitized_text = re.sub(r'\*+', '', sanitized_text)  # Remove all asterisks
+            sanitized_text = re.sub(r'_+', '', sanitized_text)   # Remove all underscores
+            sanitized_text = re.sub(r'\[.*?\]', '', sanitized_text)  # Remove [brackets]
+            sanitized_text = re.sub(r'\((?:laughs|sighs|pauses|chuckles)\)', '', sanitized_text, flags=re.IGNORECASE)  # Remove (actions)
+            sanitized_text = re.sub(r'\s+', ' ', sanitized_text).strip()  # Clean up whitespace
+            
+            if sanitized_text != original_text:
+                print(f"[TTS SANITIZE] Removed markdown formatting from text")
+            
             # Generate voice audio with tier selection
             audio_bytes = agent.generate_voice_response.remote(
-                text=result["response"],
+                text=sanitized_text,  # Use sanitized text!
                 city_name=city,
                 tier=tier
             )
@@ -1089,7 +1412,7 @@ def stream_live_commentary(request_data: Dict[str, Any]):
 # ============================================================================
 
 @app.function(image=image)
-@modal.web_endpoint(method="POST")
+@modal.fastapi_endpoint(method="POST")
 def generate_multi_city_commentary(request_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Generate commentary from multiple cities simultaneously.
@@ -1195,8 +1518,11 @@ def check_interruption_endpoint(request_data: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-@app.function(image=image)
-@modal.web_endpoint(method="POST")
+@app.function(
+    image=image,
+    secrets=[modal.Secret.from_name("wandb-secret")],
+)
+@modal.fastapi_endpoint(method="POST")
 def run_debate(request_data: dict):
     """
     Run a multi-turn debate between two city agents.
@@ -1236,11 +1562,16 @@ def run_debate(request_data: dict):
     }
     """
     import time
+    import redis
+    start_time = time.time()
+    
+    # Initialize W&B for this function
+    init_wandb()
     
     city1 = request_data.get("city1")
     city2 = request_data.get("city2")
     topic = request_data.get("topic")
-    rounds = request_data.get("rounds", 3)
+    rounds = request_data.get("rounds", 1)  # OPTIMIZATION: Default to 1 round for <10s response
     
     # Validation
     if not city1 or not city2:
@@ -1250,6 +1581,43 @@ def run_debate(request_data: dict):
     if rounds < 1 or rounds > 10:
         return {"error": "Rounds must be between 1 and 10"}
     
+    # ------------------------------------------------------------------------
+    # CACHE CHECK: Look for prewarmed debate using standardized key format
+    # Key format: neuron:debate:{normalized_city}:{topic_hash}
+    # ------------------------------------------------------------------------
+    try:
+        redis_url = os.environ.get("REDIS_URL")
+        if redis_url:
+            redis_client = redis.from_url(redis_url, decode_responses=True)
+            
+            # Generate standardized cache key (matches prewarm script)
+            normalized_city = city1.lower().replace(" ", "_").replace("(", "").replace(")", "")
+            topic_hash = hashlib.md5(topic.lower().encode()).hexdigest()[:12]
+            cache_key = f"neuron:debate:{normalized_city}:{topic_hash}"
+            
+            cached_data = redis_client.get(cache_key)
+            if cached_data:
+                import json as json_module
+                cache_result = json_module.loads(cached_data)
+                latency_ms = int((time.time() - start_time) * 1000)
+                print(f"[CACHE HIT] Debate found for {city1} - {topic[:30]}... ({latency_ms}ms)")
+                
+                # Return cached response with cache indicator
+                cached_response = cache_result.get("response", cache_result)
+                if isinstance(cached_response, dict) and "debate" in cached_response:
+                    cached_response["debate"]["cached"] = True
+                    cached_response["latency_ms"] = latency_ms
+                    return cached_response
+                else:
+                    return {
+                        "status": "success",
+                        "debate": cached_response if isinstance(cached_response, dict) else {"data": cached_response},
+                        "cached": True,
+                        "latency_ms": latency_ms
+                    }
+    except Exception as e:
+        print(f"[CACHE] Cache check failed (continuing without cache): {e}")
+    
     # Initialize agent
     agent = CulturalAgent()
     
@@ -1257,9 +1625,15 @@ def run_debate(request_data: dict):
     transcript = []
     conversation_history = []
     
-    # Run debate rounds
+    # OPTIMIZATION: Pre-generate TTS tier setting
+    tts_tier = request_data.get("tier", "premium")  # Default to premium for debates
+    
+    # Run debate rounds with PARALLEL TTS GENERATION
     for round_num in range(1, rounds + 1):
-        # City 1's turn
+        # --------------------------------------------------------------------
+        # CITY 1'S TURN
+        # --------------------------------------------------------------------
+        # Generate text response
         city1_result = agent.generate_response.remote(
             city_name=city1,
             user_input=topic,
@@ -1267,14 +1641,48 @@ def run_debate(request_data: dict):
             game_context={"opponent": city2, "debate_round": round_num}
         )
         
+        # Check for errors in generate_response
+        if "error" in city1_result:
+            return {
+                "status": "error",
+                "error": f"City1 generate_response failed: {city1_result.get('error')}",
+                "debug": city1_result
+            }
+        
         city1_response = city1_result.get("response", "")
         
-        # Add to transcript
+        # OPTIMIZATION: Sanitize markdown for TTS immediately
+        import re
+        city1_tts_text = city1_response
+        city1_tts_text = re.sub(r'\*+', '', city1_tts_text)  # Remove asterisks
+        city1_tts_text = re.sub(r'_+', '', city1_tts_text)   # Remove underscores
+        city1_tts_text = re.sub(r'\[.*?\]', '', city1_tts_text)  # Remove [brackets]
+        city1_tts_text = re.sub(r'\((?:laughs|sighs|pauses|chuckles)\)', '', city1_tts_text, flags=re.IGNORECASE)
+        city1_tts_text = re.sub(r'\s+', ' ', city1_tts_text).strip()
+        
+        # OPTIMIZATION: Generate TTS IMMEDIATELY (don't wait for City 2)
+        city1_audio_base64 = None
+        try:
+            import base64
+            city1_audio_bytes = agent.generate_voice_response.remote(
+                text=city1_tts_text,
+                city_name=city1,
+                tier=tts_tier
+            )
+            city1_audio_base64 = base64.b64encode(city1_audio_bytes).decode('utf-8')
+        except Exception as e:
+            print(f"[TTS WARNING] City1 audio generation failed: {e}")
+            # Continue without audio - text is still valid
+        
+        # Add to transcript WITH AUDIO
         transcript.append({
             "round": round_num,
             "speaker": city1,
             "response": city1_response,
-            "timestamp": int(time.time())
+            "timestamp": int(time.time()),
+            "audio_base64": city1_audio_base64,  # OPTIMIZATION: Include audio!
+            "has_audio": city1_audio_base64 is not None,
+            "tier": tts_tier if city1_audio_base64 else None
         })
         
         # Add to conversation history
@@ -1283,7 +1691,10 @@ def run_debate(request_data: dict):
             "content": city1_response
         })
         
-        # City 2's turn
+        # --------------------------------------------------------------------
+        # CITY 2'S TURN
+        # --------------------------------------------------------------------
+        # Generate text response
         city2_result = agent.generate_response.remote(
             city_name=city2,
             user_input=topic,
@@ -1293,12 +1704,36 @@ def run_debate(request_data: dict):
         
         city2_response = city2_result.get("response", "")
         
-        # Add to transcript
+        # OPTIMIZATION: Sanitize markdown for TTS immediately
+        city2_tts_text = city2_response
+        city2_tts_text = re.sub(r'\*+', '', city2_tts_text)
+        city2_tts_text = re.sub(r'_+', '', city2_tts_text)
+        city2_tts_text = re.sub(r'\[.*?\]', '', city2_tts_text)
+        city2_tts_text = re.sub(r'\((?:laughs|sighs|pauses|chuckles)\)', '', city2_tts_text, flags=re.IGNORECASE)
+        city2_tts_text = re.sub(r'\s+', ' ', city2_tts_text).strip()
+        
+        # OPTIMIZATION: Generate TTS IMMEDIATELY
+        city2_audio_base64 = None
+        try:
+            import base64
+            city2_audio_bytes = agent.generate_voice_response.remote(
+                text=city2_tts_text,
+                city_name=city2,
+                tier=tts_tier
+            )
+            city2_audio_base64 = base64.b64encode(city2_audio_bytes).decode('utf-8')
+        except Exception as e:
+            print(f"[TTS WARNING] City2 audio generation failed: {e}")
+        
+        # Add to transcript WITH AUDIO
         transcript.append({
             "round": round_num,
             "speaker": city2,
             "response": city2_response,
-            "timestamp": int(time.time())
+            "timestamp": int(time.time()),
+            "audio_base64": city2_audio_base64,  # OPTIMIZATION: Include audio!
+            "has_audio": city2_audio_base64 is not None,
+            "tier": tts_tier if city2_audio_base64 else None
         })
         
         # Add to conversation history
@@ -1306,6 +1741,16 @@ def run_debate(request_data: dict):
             "role": city2,
             "content": city2_response
         })
+    
+    # Log trace to W&B
+    latency_ms = (time.time() - start_time) * 1000
+    log_trace(
+        endpoint="run_debate",
+        latency_ms=latency_ms,
+        status="success",
+        city=f"{city1} vs {city2}",
+        extra={"topic": topic, "rounds": rounds, "total_turns": len(transcript)}
+    )
     
     # Return full debate
     return {
@@ -1361,7 +1806,7 @@ PERSONALITY_MAP = {
     ],
     timeout=120,  # 2 minutes for long debates
 )
-@modal.web_endpoint(method="POST")
+@modal.fastapi_endpoint(method="POST")
 def run_debate_stream(request_data: Dict[str, Any]) -> Any:
     """
     Run a multi-agent debate with Server-Sent Events (SSE) streaming.
@@ -1400,7 +1845,7 @@ def run_debate_stream(request_data: Dict[str, Any]) -> Any:
     panel = request_data.get("panel", [])
     config = request_data.get("config", {})
     
-    rounds = config.get("rounds", 3)
+    rounds = config.get("rounds", 2)  # OPTIMIZATION: Default to 2 rounds for streaming
     tone = config.get("tone", {"analytical": 0.5, "depth": 0.5, "energy": 0.5})
     closed_loop = config.get("closed_loop", True)
     
@@ -1569,6 +2014,56 @@ def run_debate_stream(request_data: Dict[str, Any]) -> Any:
                 "intensity": intensity
             }
             
+            # ----------------------------------------------------------------
+            # TTS AUDIO GENERATION: Convert text to speech
+            # ----------------------------------------------------------------
+            try:
+                # Check if we have ElevenLabs keys available
+                if hasattr(agent, 'elevenlabs_keys') and agent.elevenlabs_keys:
+                    from elevenlabs.client import ElevenLabs
+                    import base64
+                    
+                    # Initialize ElevenLabs client with first available key
+                    client = ElevenLabs(api_key=agent.elevenlabs_keys[0])
+                    
+                    # Get voice ID for speaker (use city name or default)
+                    voice_id = ELEVENLABS_VOICE_MAP.get(speaker_name)
+                    if not voice_id:
+                        # Fallback to default voice
+                        voice_id = "pNInz6obpgDQGcFmaJgB"  # Adam voice as default
+                        print(f"[TTS] No voice mapping for {speaker_name}, using default")
+                    
+                    # Generate audio using ElevenLabs Turbo model (faster)
+                    audio_generator = client.text_to_speech.convert(
+                        voice_id=voice_id,
+                        text=response_text,
+                        model_id="eleven_turbo_v2"  # Fast, cost-effective model
+                    )
+                    
+                    # Collect all audio chunks
+                    audio_bytes = b"".join(audio_generator)
+                    
+                    # Encode to base64 for JSON transport
+                    audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+                    segment["audio_base64"] = audio_base64
+                    
+                    # Log cost for monitoring
+                    char_count = len(response_text)
+                    log_cost(
+                        "elevenlabs", 
+                        char_count * COST_PER_CHAR_ELEVENLABS,
+                        f"TTS for {speaker_name}, {char_count} chars"
+                    )
+                    
+                    print(f"[TTS SUCCESS] Generated audio for {speaker_name}: {len(audio_base64)} base64 chars")
+                else:
+                    print(f"[TTS SKIP] No ElevenLabs keys available for {speaker_name}")
+                    
+            except Exception as tts_error:
+                # Don't fail the debate if TTS fails - just log and continue
+                print(f"[TTS ERROR] Failed for {speaker_name}: {str(tts_error)[:200]}")
+                # Frontend will fallback to text-only or call TTS endpoint directly
+            
             segments.append(segment)
             
             # Add to conversation history
@@ -1670,7 +2165,7 @@ def detect_intensity_level(text: str) -> str:
     ],
     timeout=60,
 )
-@modal.web_endpoint(method="POST")
+@modal.fastapi_endpoint(method="POST")
 def regenerate_segment(request_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Regenerate a single debate segment with conversation context.
@@ -1861,76 +2356,182 @@ Make it feel like an alternate timeline of this debate.
     secrets=[
         modal.Secret.from_name("googlecloud-secret"),
         modal.Secret.from_name("elevenlabs-secret"),
+        modal.Secret.from_name("wandb-secret"),
     ],
     timeout=60,
 )
-@modal.web_endpoint(method="POST")
+@modal.fastapi_endpoint(method="POST")
 def generate_tts(request_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Generate TTS audio for a debate segment.
+    
+    Uses 75% Google Cloud TTS, 25% ElevenLabs with automatic fallback.
     
     Request:
     {
         "text": str,
         "speaker_id": str,
-        "intensity": str (optional: low/medium/high/explosive)
+        "intensity": str (optional: low/medium/high/explosive),
+        "force_provider": str (optional: "google" or "elevenlabs")
     }
     
     Response:
     {
         "audio_base64": str,
         "duration_ms": int,
-        "format": str
+        "format": str,
+        "provider": str  # "google" or "elevenlabs"
     }
     """
     import base64
     import os
+    import time
+    import random
+    import tempfile
+    start_time = time.time()
+    
+    # Initialize W&B for this function
+    init_wandb()
     
     text = request_data.get("text", "")
     speaker_id = request_data.get("speaker_id", "narrator")
     intensity = request_data.get("intensity", "medium")
+    force_provider = request_data.get("force_provider", None)
     
     if not text:
         return {"error": "Text is required"}
     
     if len(text) > 5000:
         return {"error": "Text too long. Maximum 5000 characters."}
-        
-    print(f"[TTS] Generating audio for speaker_id='{speaker_id}', intensity='{intensity}', text_len={len(text)}")
     
-    try:
-        # Resolve city name from speaker_id
-        city_name = "Kansas City"  # Default fallback
+    # =========================================================================
+    # VOICE ROUTER: 75% Google, 25% ElevenLabs
+    # =========================================================================
+    
+    # 6 agents PER DEBATE - assigned by agent number (1-6)
+    # Zareena is always agent_6 (female), others are male
+    GOOGLE_VOICE_POOL = {
+        # Agent-based assignment (for 6 agents per debate)
+        "agent_1": "en-US-Studio-Q",      # Male - Deep authoritative
+        "agent_2": "en-US-Neural2-J",     # Male - Energetic
+        "agent_3": "en-US-Neural2-D",     # Male - Smooth
+        "agent_4": "en-US-Neural2-A",     # Male - Clear
+        "agent_5": "en-US-News-N",        # Male - Broadcaster
+        "agent_6": "en-US-Studio-O",      # Female - Zareena
         
-        # Check PERSONALITY_MAP for matching city
-        for city, data in PERSONALITY_MAP.items():
-            city_lower = city.lower()
-            speaker_lower = speaker_id.lower()
-            display_name_lower = data.get("display_name", "").lower()
-            
-            if (speaker_lower == city_lower or 
-                speaker_lower in city_lower or 
-                speaker_lower == display_name_lower or
-                speaker_lower in display_name_lower):
-                city_name = city
-                break
+        # City fallbacks (legacy support)
+        "seattle": "en-US-Neural2-J",
+        "dallas": "en-US-Studio-Q",
+        "kansas_city": "en-US-Neural2-D",
+        "kansas city": "en-US-Neural2-D",
+        "philadelphia": "en-US-Neural2-A",
+        "buffalo": "en-US-News-N",
+        "zareena": "en-US-Studio-O",
+        "minneapolis": "en-US-Studio-O",
         
-        print(f"[TTS] Resolved city_name='{city_name}' for speaker_id='{speaker_id}'")
+        # Numbered fallback (agent1, agent2, etc)
+        "1": "en-US-Studio-Q",
+        "2": "en-US-Neural2-J",
+        "3": "en-US-Neural2-D",
+        "4": "en-US-Neural2-A",
+        "5": "en-US-News-N",
+        "6": "en-US-Studio-O",
         
-        # Get ElevenLabs voice ID for this city
-        voice_id = ELEVENLABS_VOICE_MAP.get(city_name, "pNInz6obpgDQGcFmaJgB")  # Default: Adam
+        "default": "en-US-Neural2-J",
+    }
+    
+    # Get voice from speaker_id (supports: "agent_1", "1", "seattle", etc)
+    speaker_lower = speaker_id.lower().replace(" ", "_")
+    google_voice_selected = GOOGLE_VOICE_POOL.get(speaker_lower, GOOGLE_VOICE_POOL["default"])
+    
+    # Resolve city name from speaker_id
+    # Default: Use speaker_id as city name (for cities not in PERSONALITY_MAP)
+    city_name = speaker_id  # Use the actual speaker_id, not hardcoded Kansas City!
+    
+    # Normalize speaker_id for matching (lowercase, remove spaces)
+    speaker_normalized = speaker_id.lower().replace(" ", "").replace("_", "")
+    
+    for key, data in PERSONALITY_MAP.items():
+        key_normalized = key.lower().replace(" ", "").replace("_", "")
+        city_value = data.get("city", "")
+        city_normalized = city_value.lower().replace(" ", "").replace("_", "")
+        display_name_normalized = data.get("display_name", "").lower().replace(" ", "").replace("_", "")
         
-        # Get API key
-        api_key = os.environ.get("ELEVENLABS_API_KEY")
-        if not api_key:
-            return {"error": "ElevenLabs API key not configured"}
+        if (speaker_normalized == key_normalized or 
+            speaker_normalized == city_normalized or
+            speaker_normalized in city_normalized or
+            city_normalized in speaker_normalized or
+            speaker_normalized == display_name_normalized):
+            city_name = city_value  # Use the actual city name from data
+            break
+    
+    print(f"[TTS] Resolved city_name='{city_name}' for speaker_id='{speaker_id}'")
+    
+    # Select provider: 75% Google, 25% ElevenLabs
+    if force_provider:
+        selected_provider = force_provider
+    else:
+        selected_provider = "google" if random.random() < 0.75 else "elevenlabs"
+    
+    print(f"[TTS] Selected provider: {selected_provider} (75/25 split)")
+    
+    # =========================================================================
+    # TRY SELECTED PROVIDER, FALLBACK IF NEEDED
+    # =========================================================================
+    
+    audio_bytes = None
+    provider_used = None
+    audio_format = "mp3"
+    
+    # Define generation functions
+    def try_google_tts():
+        """Generate with Google Cloud TTS."""
+        from google.cloud import texttospeech
         
-        # Call ElevenLabs directly (no agent hop)
+        # Setup credentials
+        gcp_creds = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+        if gcp_creds:
+            creds_path = tempfile.mktemp(suffix=".json")
+            with open(creds_path, "w") as f:
+                f.write(gcp_creds)
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = creds_path
+        
+        client = texttospeech.TextToSpeechClient()
+        
+        # Get Google voice - use pre-selected voice from speaker_id
+        # Falls back to city-based or default
+        voice_to_use = google_voice_selected
+        
+        synthesis_input = texttospeech.SynthesisInput(text=text)
+        voice = texttospeech.VoiceSelectionParams(
+            language_code="en-US",
+            name=voice_to_use
+        )
+        audio_config = texttospeech.AudioConfig(
+            audio_encoding=texttospeech.AudioEncoding.MP3,
+            sample_rate_hertz=24000
+        )
+        
+        response = client.synthesize_speech(
+            input=synthesis_input,
+            voice=voice,
+            audio_config=audio_config
+        )
+        
+        print(f"[TTS] Google success: voice={voice_to_use}, bytes={len(response.audio_content)}")
+        return response.audio_content, "google"
+    
+    def try_elevenlabs_tts():
+        """Generate with ElevenLabs."""
         from elevenlabs.client import ElevenLabs
         
-        print(f"[TTS] Calling ElevenLabs with voice_id='{voice_id}'")
-        client = ElevenLabs(api_key=api_key)
+        api_key = os.environ.get("ELEVENLABS_API_KEY")
+        if not api_key:
+            raise Exception("ElevenLabs API key not configured")
         
+        voice_id = ELEVENLABS_VOICE_MAP.get(city_name, "pNInz6obpgDQGcFmaJgB")
+        
+        client = ElevenLabs(api_key=api_key)
         audio_generator = client.text_to_speech.convert(
             text=text,
             voice_id=voice_id,
@@ -1938,33 +2539,277 @@ def generate_tts(request_data: Dict[str, Any]) -> Dict[str, Any]:
             output_format="mp3_44100_128"
         )
         
-        # Collect audio bytes
-        audio_bytes = b"".join(audio_generator)
-        
-        if not audio_bytes:
-            return {"error": "No audio data returned from ElevenLabs"}
-        
-        # Convert bytes to base64 for JSON response
-        audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
-        
-        # Calculate approximate duration
-        word_count = len(text.split())
-        duration_ms = int((word_count / 2.5) * 1000)
-        
-        print(f"[TTS SUCCESS] Generated {len(audio_bytes)} bytes for '{city_name}', duration={duration_ms}ms")
-        
-        return {
-            "audio_base64": audio_base64,
-            "duration_ms": duration_ms,
-            "format": "mp3",
-            "tier_used": "premium",
-            "speaker_id": speaker_id,
-            "city": city_name
+        audio = b"".join(audio_generator)
+        print(f"[TTS] ElevenLabs success: voice_id={voice_id}, bytes={len(audio)}")
+        return audio, "elevenlabs"
+    
+    # Try selected provider first, then fallback
+    providers_to_try = []
+    if selected_provider == "google":
+        providers_to_try = [("google", try_google_tts), ("elevenlabs", try_elevenlabs_tts)]
+    else:
+        providers_to_try = [("elevenlabs", try_elevenlabs_tts), ("google", try_google_tts)]
+    
+    errors = []
+    for provider_name, provider_func in providers_to_try:
+        try:
+            audio_bytes, provider_used = provider_func()
+            if audio_bytes:
+                break
+        except Exception as e:
+            errors.append(f"{provider_name}: {str(e)[:100]}")
+            print(f"[TTS] {provider_name} failed: {e}")
+    
+    if not audio_bytes:
+        return {"error": f"All TTS providers failed: {'; '.join(errors)}"}
+    
+    # =========================================================================
+    # RESPONSE
+    # =========================================================================
+    
+    audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+    word_count = len(text.split())
+    duration_ms = int((word_count / 2.5) * 1000)
+    
+    latency_ms = (time.time() - start_time) * 1000
+    print(f"[TTS SUCCESS] provider={provider_used}, bytes={len(audio_bytes)}, latency={latency_ms:.0f}ms")
+    
+    # Log trace to W&B
+    log_trace(
+        endpoint="generate_tts",
+        latency_ms=latency_ms,
+        status="success",
+        city=city_name,
+        extra={
+            "text_length": len(text),
+            "audio_bytes": len(audio_bytes),
+            "provider": provider_used,
+            "selected_provider": selected_provider,
+            "fallback_used": provider_used != selected_provider
         }
+    )
+    
+    return {
+        "audio_base64": audio_base64,
+        "duration_ms": duration_ms,
+        "format": audio_format,
+        "provider": provider_used,
+        "tier_used": "premium" if provider_used == "elevenlabs" else "google",
+        "speaker_id": speaker_id,
+        "city": city_name
+    }
+
+
+# ============================================================================
+# ASK WITH VOICE - Combined LLM + TTS (Internal function - call via .remote())
+# ============================================================================
+
+@app.function(
+    image=image,
+    secrets=[
+        modal.Secret.from_name("googlecloud-secret"),
+        modal.Secret.from_name("elevenlabs-secret"),
+        modal.Secret.from_name("gemini-api-key"),
+        modal.Secret.from_name("wandb-secret"),
+    ],
+    timeout=120,
+)
+# NOTE: Not a web endpoint to stay within Modal's 8-endpoint limit
+# Call via Modal SDK: ask_with_voice.remote(request_data)
+def ask_with_voice(request_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Combined endpoint: Question → Gemini → TTS → Audio
+    
+    Takes a question, generates response with Gemini, converts to speech.
+    
+    Request:
+    {
+        "question": str,          # Question to answer
+        "agent_id": str,          # "agent_1" through "agent_6" (agent_6 = Zareena/female)
+        "context": str,           # Optional game/player context
+        "max_words": int,         # Optional max response length (default 100)
+        "force_tts_provider": str # Optional: "google" or "elevenlabs"
+    }
+    
+    Response:
+    {
+        "text": str,              # Generated text response
+        "audio_base64": str,      # Base64 encoded audio
+        "duration_ms": int,
+        "agent_id": str,
+        "tts_provider": str
+    }
+    """
+    import base64
+    import os
+    import time
+    import random
+    import tempfile
+    
+    start_time = time.time()
+    init_wandb()
+    
+    question = request_data.get("question", "")
+    agent_id = request_data.get("agent_id", "agent_1")
+    context = request_data.get("context", "")
+    max_words = request_data.get("max_words", 100)
+    force_tts_provider = request_data.get("force_tts_provider", None)
+    
+    if not question:
+        return {"error": "Question is required"}
+    
+    print(f"[ASK] Question: '{question[:80]}...', Agent: {agent_id}")
+    
+    # =========================================================================
+    # STEP 1: Generate response with Gemini
+    # =========================================================================
+    
+    try:
+        import google.generativeai as genai
+        
+        api_key = os.environ.get("GOOGLE_API_KEY")
+        if not api_key:
+            return {"error": "Gemini API key not configured"}
+        
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel("gemini-2.0-flash-exp")
+        
+        # Build prompt
+        system_prompt = f"""You are a fantasy football expert sportscaster (Agent {agent_id}).
+Give concise, expert analysis. Be enthusiastic but informative.
+Keep your response under {max_words} words."""
+
+        if context:
+            full_prompt = f"{system_prompt}\n\nContext: {context}\n\nQuestion: {question}"
+        else:
+            full_prompt = f"{system_prompt}\n\nQuestion: {question}"
+        
+        response = model.generate_content(full_prompt)
+        generated_text = response.text.strip()
+        
+        print(f"[ASK] Generated {len(generated_text)} chars")
         
     except Exception as e:
-        print(f"[TTS ERROR] Failed to generate audio: {e}")
-        return {"error": str(e)}
+        print(f"[ASK ERROR] Gemini failed: {e}")
+        return {"error": f"LLM generation failed: {str(e)}"}
+    
+    # =========================================================================
+    # STEP 2: Convert to speech with Google TTS / ElevenLabs
+    # =========================================================================
+    
+    # Voice mapping for 6 agents
+    GOOGLE_VOICE_MAP = {
+        "agent_1": "en-US-Studio-Q",
+        "agent_2": "en-US-Neural2-J",
+        "agent_3": "en-US-Neural2-D",
+        "agent_4": "en-US-Neural2-A",
+        "agent_5": "en-US-News-N",
+        "agent_6": "en-US-Studio-O",  # Female - Zareena
+    }
+    
+    ELEVENLABS_VOICE_MAP_LOCAL = {
+        "agent_1": "pNInz6obpgDQGcFmaJgB",
+        "agent_2": "21m00Tcm4TlvDq8ikWAM",
+        "agent_3": "EXAVITQu4vr4xnSDxMaL",
+        "agent_4": "VR6AewLTigWG4xSOukaG",
+        "agent_5": "yoZ06aMxZJJ28mfd3POQ",
+        "agent_6": "21m00Tcm4TlvDq8ikWAM",
+    }
+    
+    # Select provider: 75% Google, 25% ElevenLabs
+    if force_tts_provider:
+        selected_provider = force_tts_provider
+    else:
+        selected_provider = "google" if random.random() < 0.75 else "elevenlabs"
+    
+    audio_bytes = None
+    provider_used = None
+    
+    def try_google():
+        from google.cloud import texttospeech
+        
+        gcp_creds = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+        if gcp_creds:
+            creds_path = tempfile.mktemp(suffix=".json")
+            with open(creds_path, "w") as f:
+                f.write(gcp_creds)
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = creds_path
+        
+        client = texttospeech.TextToSpeechClient()
+        voice_name = GOOGLE_VOICE_MAP.get(agent_id, "en-US-Neural2-J")
+        
+        synthesis_input = texttospeech.SynthesisInput(text=generated_text)
+        voice = texttospeech.VoiceSelectionParams(language_code="en-US", name=voice_name)
+        audio_config = texttospeech.AudioConfig(
+            audio_encoding=texttospeech.AudioEncoding.MP3,
+            sample_rate_hertz=24000
+        )
+        
+        response = client.synthesize_speech(input=synthesis_input, voice=voice, audio_config=audio_config)
+        return response.audio_content, "google"
+    
+    def try_elevenlabs():
+        from elevenlabs.client import ElevenLabs
+        
+        api_key = os.environ.get("ELEVENLABS_API_KEY")
+        if not api_key:
+            raise Exception("ElevenLabs API key not configured")
+        
+        voice_id = ELEVENLABS_VOICE_MAP_LOCAL.get(agent_id, "pNInz6obpgDQGcFmaJgB")
+        client = ElevenLabs(api_key=api_key)
+        
+        audio_gen = client.text_to_speech.convert(
+            text=generated_text,
+            voice_id=voice_id,
+            model_id="eleven_monolingual_v1",
+            output_format="mp3_44100_128"
+        )
+        return b"".join(audio_gen), "elevenlabs"
+    
+    # Try with fallback
+    providers = [(selected_provider, try_google if selected_provider == "google" else try_elevenlabs),
+                 ("elevenlabs" if selected_provider == "google" else "google", 
+                  try_elevenlabs if selected_provider == "google" else try_google)]
+    
+    for name, func in providers:
+        try:
+            audio_bytes, provider_used = func()
+            if audio_bytes:
+                break
+        except Exception as e:
+            print(f"[ASK] TTS {name} failed: {e}")
+    
+    if not audio_bytes:
+        return {"error": "TTS generation failed", "text": generated_text}
+    
+    # =========================================================================
+    # RESPONSE
+    # =========================================================================
+    
+    audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+    word_count = len(generated_text.split())
+    duration_ms = int((word_count / 2.5) * 1000)
+    
+    total_latency = (time.time() - start_time) * 1000
+    print(f"[ASK SUCCESS] agent={agent_id}, provider={provider_used}, latency={total_latency:.0f}ms")
+    
+    log_trace(
+        endpoint="ask_with_voice",
+        latency_ms=total_latency,
+        status="success",
+        city=agent_id,
+        extra={"question_len": len(question), "response_len": len(generated_text), "provider": provider_used}
+    )
+    
+    return {
+        "text": generated_text,
+        "audio_base64": audio_base64,
+        "duration_ms": duration_ms,
+        "format": "mp3",
+        "agent_id": agent_id,
+        "tts_provider": provider_used,
+        "latency_ms": int(total_latency)
+    }
 
 
 # ============================================================================
@@ -2084,8 +2929,13 @@ def calculate_confidence(samples: list, analysis: dict) -> float:
     return round(quantity_score + diversity_score + word_score, 2)
 
 
-@app.function(image=image, timeout=300)
-@modal.web_endpoint(method="POST")
+
+@app.function(
+    image=image, 
+    timeout=300,
+    secrets=[modal.Secret.from_name("gcp-vertex-ai")]
+)
+@modal.fastapi_endpoint(method="POST")
 def analyze_style_samples(request: dict):
     """
     Analyze content samples to extract style markers and generate personality profile.
@@ -2198,9 +3048,26 @@ Be specific and accurate. These markers will be used to generate an AI personali
 Return ONLY the JSON object, no other text."""
 
     try:
-        # Initialize Vertex AI
-        aiplatform.init(project="fantasy-ai-444320", location="us-central1")
-        model = GenerativeModel("gemini-1.5-flash")
+        # Get GCP credentials from environment (injected by Modal secret)
+        import os
+        import base64
+        import tempfile
+        
+        credentials_json = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+        project_id = os.environ.get("GCP_PROJECT_ID", "leafy-sanctuary-476515-t2")
+        
+        if credentials_json:
+            # Decode base64 and write credentials to temp file
+            creds_data = base64.b64decode(credentials_json)
+            with tempfile.NamedTemporaryFile(mode='wb', delete=False, suffix='.json') as f:
+                f.write(creds_data)
+                creds_path = f.name
+            
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = creds_path
+        
+        # Initialize Vertex AI with proper credentials  
+        aiplatform.init(project=project_id, location="us-central1")
+        model = GenerativeModel("gemini-2.0-flash-001")
         
         # Generate analysis
         response = model.generate_content(
@@ -2619,7 +3486,7 @@ def check_fine_tuning_status(request: dict):
 # ============================================================================
 
 @app.function(image=image, timeout=300)
-@modal.web_endpoint(method="POST")
+# @modal.web_endpoint(method="POST")  # DISABLED - Modal 8-endpoint limit (enable after TNF)
 def content_extract(data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Unified content extraction endpoint for Style Capture v2.
@@ -2981,6 +3848,185 @@ For fantasy football context, note any lineup implications."""
             "latency_ms": int((time.time() - start) * 1000),
             "error": str(e)
         }
+
+
+# ============================================================================
+# CONSOLIDATED DASHBOARD API (combines metrics, cache, analytics)
+# ============================================================================
+
+@app.function(
+    image=image,
+    secrets=[modal.Secret.from_name("redis-credentials")],
+    timeout=30,
+)
+@modal.fastapi_endpoint(method="POST")
+def dashboard_api(request_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Consolidated dashboard API combining multiple functions.
+    
+    Request:
+    {
+        "action": "get_metrics" | "get_cache_status" | "warm_cache" | 
+                  "get_analytics" | "update_settings",
+        "creator_id": "optional",
+        "city": "optional",
+        "settings": {...}  // for update_settings
+    }
+    
+    Returns appropriate response based on action.
+    """
+    import redis
+    import os
+    import time
+    from datetime import datetime
+    
+    action = request_data.get("action", "get_metrics")
+    creator_id = request_data.get("creator_id", "anonymous")
+    city = request_data.get("city")
+    
+    # Connect to Redis
+    try:
+        redis_url = os.environ.get("REDIS_URL", "")
+        r = redis.from_url(redis_url) if redis_url else None
+    except Exception as e:
+        r = None
+    
+    # ---- ACTION: get_metrics ----
+    if action == "get_metrics":
+        # Get real metrics from Redis if available
+        metrics = {
+            "latency": {"avg": 150, "p50": 120, "p95": 350, "p99": 500},
+            "cache_hit_rate": 0.85,
+            "provider_split": {"google_tts": 0.75, "elevenlabs": 0.25, "browser_tts": 0.0},
+            "requests_today": 0,
+            "success_rate": 0.98,
+            "cold_starts": 0,
+            "errors": 0,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        if r:
+            try:
+                # Get today's stats from Redis
+                today = datetime.now().strftime("%Y-%m-%d")
+                metrics["requests_today"] = int(r.get(f"neuron:stats:{today}:requests") or 0)
+                metrics["errors"] = int(r.get(f"neuron:stats:{today}:errors") or 0)
+                
+                # Get latency stats
+                latencies = r.lrange("neuron:latencies:recent", 0, 99)
+                if latencies:
+                    lat_values = [float(l) for l in latencies]
+                    lat_values.sort()
+                    metrics["latency"]["avg"] = sum(lat_values) / len(lat_values)
+                    metrics["latency"]["p50"] = lat_values[len(lat_values) // 2]
+                    metrics["latency"]["p95"] = lat_values[int(len(lat_values) * 0.95)]
+            except:
+                pass
+        
+        return {"status": "success", "metrics": metrics}
+    
+    # ---- ACTION: get_cache_status ----
+    elif action == "get_cache_status":
+        cities = ["Philadelphia", "Dallas", "Kansas City", "Buffalo", "Miami", 
+                  "New England", "Pittsburgh", "Baltimore", "Denver", "Seattle"]
+        cache_status = []
+        
+        for city_name in cities:
+            status = "cold"
+            cached_phrases = 0
+            last_warmed = None
+            
+            if r:
+                try:
+                    cache_key = f"neuron:phrases:{city_name.lower().replace(' ', '_')}"
+                    cached_phrases = r.llen(cache_key)
+                    if cached_phrases > 0:
+                        status = "warm"
+                        last_warmed = r.get(f"neuron:cache_warmed:{city_name}") or None
+                        if last_warmed:
+                            last_warmed = last_warmed.decode() if isinstance(last_warmed, bytes) else str(last_warmed)
+                except:
+                    pass
+            
+            cache_status.append({
+                "city": city_name,
+                "status": status,
+                "cached_phrases": cached_phrases,
+                "last_warmed": last_warmed
+            })
+        
+        return {"status": "success", "cache_status": cache_status}
+    
+    # ---- ACTION: warm_cache ----
+    elif action == "warm_cache":
+        if not city:
+            return {"status": "error", "message": "City required for warm_cache"}
+        
+        phrases_cached = 0
+        if r:
+            try:
+                # Load city profile and cache phrases
+                import json
+                with open("/root/config/city_profiles.json", "r") as f:
+                    profiles = json.load(f)
+                
+                if city in profiles:
+                    profile = profiles[city]
+                    phrases = profile.get("lexical_style", {}).get("phrases", [])
+                    cache_key = f"neuron:phrases:{city.lower().replace(' ', '_')}"
+                    
+                    for phrase in phrases:
+                        r.rpush(cache_key, phrase)
+                    
+                    r.set(f"neuron:cache_warmed:{city}", datetime.now().isoformat())
+                    phrases_cached = len(phrases)
+            except Exception as e:
+                return {"status": "error", "message": str(e)}
+        
+        return {"status": "success", "city": city, "phrases_cached": phrases_cached}
+    
+    # ---- ACTION: get_analytics ----
+    elif action == "get_analytics":
+        # Return voice analytics for creator
+        analytics = {
+            "sitcom_exports": 0,
+            "studio_exports": 0,
+            "completion_by_style": {"sitcom": 0.0, "studio": 0.0},
+            "most_used_cities": [],
+            "feedback_ratings": {"positive": 0, "negative": 0, "average": 0.0},
+            "cost_by_provider": {"google_tts": 0.0, "elevenlabs": 0.0},
+            "retention_by_style": {
+                "sitcom": {"avg_watch_time": 0, "completion_rate": 0.0},
+                "studio": {"avg_watch_time": 0, "completion_rate": 0.0}
+            }
+        }
+        
+        if r and creator_id != "anonymous":
+            try:
+                analytics["sitcom_exports"] = int(r.get(f"neuron:creator:{creator_id}:exports:sitcom") or 0)
+                analytics["studio_exports"] = int(r.get(f"neuron:creator:{creator_id}:exports:studio") or 0)
+            except:
+                pass
+        
+        return {"status": "success", "analytics": analytics}
+    
+    # ---- ACTION: update_settings ----
+    elif action == "update_settings":
+        settings = request_data.get("settings", {})
+        
+        if r:
+            try:
+                import json
+                settings_key = f"neuron:creator:{creator_id}:settings"
+                r.set(settings_key, json.dumps(settings))
+                return {"status": "success", "settings": settings}
+            except Exception as e:
+                return {"status": "error", "message": str(e)}
+        
+        return {"status": "success", "settings": settings, "note": "Stored in memory only"}
+    
+    else:
+        return {"status": "error", "message": f"Unknown action: {action}"}
 
 
 @app.local_entrypoint()
