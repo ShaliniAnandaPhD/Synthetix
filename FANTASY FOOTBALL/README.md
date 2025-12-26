@@ -1,6 +1,21 @@
 # Fantasy Football Neuron System
 
+[![Neuron Test Suite](https://github.com/ShaliniAnandaPhD/Synthetix/actions/workflows/test.yml/badge.svg)](https://github.com/ShaliniAnandaPhD/Synthetix/actions/workflows/test.yml)
+
 This codebase contains a suite of advanced fantasy football analysis and automation tools. Below is a guide on how to use the key components.
+
+## Quick Test Commands
+
+```bash
+# P0 Critical: Validate "within minutes" claim
+python tests/e2e/test_full_pipeline_timing.py
+
+# ESPN Integration
+python tests/realtime/test_espn_integration.py
+
+# Full backend tests
+python tests/automated_backend_tests.py
+```
 
 ## Prerequisites
 
