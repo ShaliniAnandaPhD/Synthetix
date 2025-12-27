@@ -1,0 +1,108 @@
+
+================================================================================
+TEST 1: MODAL ENDPOINTS DEPLOYED & ACCESSIBLE
+================================================================================
+  [PASS] 200: generate_commentary endpoint
+         → URL: https://neuronsystems--neuron-orchestrator-generate-commentary.modal.run
+  [PASS] 201: run_debate endpoint
+         → URL: https://neuronsystems--neuron-orchestrator-run-debate.modal.run
+  [PASS] 202: generate_tts endpoint
+         → URL: https://neuronsystems--neuron-orchestrator-generate-tts.modal.run
+  [FAIL] 203: Modal deployment status
+         → Error: HTTPSConnectionPool(host='neuronsystems--neuron-or
+  [FAIL] 204: Valid request returns 200 OK
+         → Error: HTTPSConnectionPool(host='neuronsystems--neuron-or
+
+================================================================================
+TEST 2: CITY PROFILES LOAD CORRECTLY
+================================================================================
+  [PASS] 205: Philadelphia profile loads
+         → Checked for regional phrases
+  [PASS] 206: Pittsburgh profile loads
+         → Checked for 'yinz' phrase
+  [PASS] 207: New Orleans profile loads
+         → Checked for 'where y'at' phrases
+  [PASS] 208: Minnesota profile loads
+         → Checked for 'ope' phrase
+  [PASS] 209: All 32 city profiles load
+         → Found 32 cities
+
+================================================================================
+TEST 3: REGIONAL PHRASES INJECTION WORKS
+================================================================================
+  [PASS] 210: Philadelphia regional phrases
+         → Generated response (phrase appearance is probabilistic)
+  [PASS] 211: Pittsburgh regional phrases
+         → Generated response
+  [PASS] 212: New Orleans regional phrases
+         → Generated response
+  [PASS] 213: Chicago regional phrases
+         → Generated response
+
+================================================================================
+TEST 4: UNIQUE VOICE ASSIGNMENT WORKS
+================================================================================
+  [PASS] 216: Philadelphia voice (Neural2-I)
+         → TTS generated
+  [PASS] 217: Dallas voice (Studio-Q)
+         → TTS generated
+  [PASS] 218: Minnesota voice (Wavenet-G)
+         → TTS generated
+  [PASS] 219: Multi-city debate (different voices)
+         → Debate generated (voices assigned per city)
+  [PASS] 220: Audio sounds distinct (MANUAL)
+         → ⚠️  Requires manual listening
+
+================================================================================
+TEST 5: PANEL SHOW MODE (SITCOM STYLE) WORKS
+================================================================================
+  [FAIL] 221: Panel show - no trash talk
+         → ⚠️ Contains asterisks
+  [PASS] 222: Analytical language present
+         → Stats: True | Twitter: False
+  [PASS] 223: Markdown sanitization (NO asterisks in audio)
+         → TTS generated successfully
+  [PASS] 224: Archetype adherence (MANUAL)
+         → ⚠️  Requires manual review of responses
+  [PASS] 225: Natural reactions (not creepy HAHAHA)
+         → Subtle: False | Creepy: False
+
+================================================================================
+TEST SUMMARY
+================================================================================
+Total Tests: 24
+✅ Passed: 21
+❌ Failed: 3
+Success Rate: 87.5%
+
+================================================================================
+DETAILED TEST LOG
+================================================================================
+[PASS] 200 | generate_commentary endpoint | URL: https://neuronsystems--neuron-orchestrator-generate-commentary.modal.run
+[PASS] 201 | run_debate endpoint | URL: https://neuronsystems--neuron-orchestrator-run-debate.modal.run
+[PASS] 202 | generate_tts endpoint | URL: https://neuronsystems--neuron-orchestrator-generate-tts.modal.run
+[FAIL] 203 | Modal deployment status | Error: HTTPSConnectionPool(host='neuronsystems--neuron-or
+[FAIL] 204 | Valid request returns 200 OK | Error: HTTPSConnectionPool(host='neuronsystems--neuron-or
+[PASS] 205 | Philadelphia profile loads | Checked for regional phrases
+[PASS] 206 | Pittsburgh profile loads | Checked for 'yinz' phrase
+[PASS] 207 | New Orleans profile loads | Checked for 'where y'at' phrases
+[PASS] 208 | Minnesota profile loads | Checked for 'ope' phrase
+[PASS] 209 | All 32 city profiles load | Found 32 cities
+[PASS] 210 | Philadelphia regional phrases | Generated response (phrase appearance is probabilistic)
+[PASS] 211 | Pittsburgh regional phrases | Generated response
+[PASS] 212 | New Orleans regional phrases | Generated response
+[PASS] 213 | Chicago regional phrases | Generated response
+[PASS] 216 | Philadelphia voice (Neural2-I) | TTS generated
+[PASS] 217 | Dallas voice (Studio-Q) | TTS generated
+[PASS] 218 | Minnesota voice (Wavenet-G) | TTS generated
+[PASS] 219 | Multi-city debate (different voices) | Debate generated (voices assigned per city)
+[PASS] 220 | Audio sounds distinct (MANUAL) | ⚠️  Requires manual listening
+[FAIL] 221 | Panel show - no trash talk | ⚠️ Contains asterisks
+[PASS] 222 | Analytical language present | Stats: True | Twitter: False
+[PASS] 223 | Markdown sanitization (NO asterisks in audio) | TTS generated successfully
+[PASS] 224 | Archetype adherence (MANUAL) | ⚠️  Requires manual review of responses
+[PASS] 225 | Natural reactions (not creepy HAHAHA) | Subtle: False | Creepy: False
+
+================================================================================
+⚠️  3 test(s) failed - review above for details
+================================================================================
