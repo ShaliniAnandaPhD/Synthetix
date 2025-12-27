@@ -20,6 +20,7 @@ import os
 import sys
 import time
 import base64
+import pytest
 from datetime import datetime
 from dataclasses import dataclass
 from typing import Dict, Any, Optional, List
@@ -106,6 +107,7 @@ SAMPLE_EVENTS = [
 # TEST 1: Event to Debate Timing (<30 seconds)
 # ============================================================================
 
+@pytest.mark.asyncio
 async def test_event_to_debate_timing() -> TimingResult:
     """
     Measures: Event detected → Debate text generated
@@ -215,6 +217,7 @@ async def test_event_to_debate_timing() -> TimingResult:
 # TEST 2: Event to Audio Timing (<60 seconds)
 # ============================================================================
 
+@pytest.mark.asyncio
 async def test_event_to_audio_timing() -> TimingResult:
     """
     Measures: Event detected → Audio file ready
@@ -341,6 +344,7 @@ async def test_event_to_audio_timing() -> TimingResult:
 # TEST 3: Full Content Creation Timing (<120 seconds)
 # ============================================================================
 
+@pytest.mark.asyncio
 async def test_full_content_creation_timing() -> TimingResult:
     """
     Measures: Event detected → Full publish-ready package
