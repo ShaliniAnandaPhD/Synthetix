@@ -524,10 +524,10 @@
 
                     // Process each agent in the swarm
                     if (Array.isArray(agents)) {
-                        // Cycle through locales for variety
-                        const localeKeys = Object.keys(LOCALES);
-                        const fanLocale = localeKeys[stats.events % localeKeys.length];
-                        const analystLocale = localeKeys[(stats.events + 3) % localeKeys.length];
+                        // Explicit locale order for reliable cycling
+                        const localeOrder = ['en-US', 'pt-BR', 'en-GB', 'es-MX', 'en-AU', 'ja-JP'];
+                        const fanLocale = localeOrder[stats.events % localeOrder.length];
+                        const analystLocale = localeOrder[(stats.events + 3) % localeOrder.length];
 
                         // Agent A (Die Hard Fan) - render immediately
                         const fan = agents[0];
