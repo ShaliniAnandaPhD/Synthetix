@@ -162,9 +162,9 @@ async def simulate_event(request: Request):
     # Return BOTH agents as a list
     swarm_response = [
         {
-            "agent_id": "agent-homer",
+            "agent_id": "agent-fan",
             "persona": "fanatic",
-            "name": "The Homer 🔥",
+            "name": "Die Hard Fan 🔥",
             "content": homer_text,
             "excitement_score": homer_score,
             "event_type": event_type,
@@ -172,9 +172,9 @@ async def simulate_event(request: Request):
             "timestamp": "Live"
         },
         {
-            "agent_id": "agent-skeptic",
+            "agent_id": "agent-analyst",
             "persona": "analyst",
-            "name": "The Skeptic 🧐",
+            "name": "Analyst 🧐",
             "content": skeptic_text,
             "excitement_score": skeptic_score,
             "event_type": event_type,
@@ -194,20 +194,20 @@ async def simulate_event(request: Request):
 # Sample content for each artifact type
 DEBATE_SCRIPTS = {
     "TOUCHDOWN": {
-        "homer": "YESSSSS! TOUCHDOWN BABY! THIS IS THE GREATEST PLAY I'VE EVER SEEN! We're going all the way! Dynasty confirmed! 🔥🔥🔥",
-        "skeptic": "Right, well done. Good execution on the route. The defensive alignment was rather poor, which made this somewhat expected given the coverage."
+        "fan": "YESSSSS! TOUCHDOWN BABY! THIS IS THE GREATEST PLAY I'VE EVER SEEN! We're going all the way! Dynasty confirmed! 🔥🔥🔥",
+        "analyst": "Right, well done. Good execution on the route. The defensive alignment was rather poor, which made this somewhat expected given the coverage."
     },
     "PENALTY": {
-        "homer": "WHAT?! THAT'S A TERRIBLE CALL! THE REFS ARE BLIND! This is rigged! We're being robbed!",
-        "skeptic": "The officials appear to have made the correct call. The tape will confirm. This has been a recurring issue with discipline."
+        "fan": "WHAT?! THAT'S A TERRIBLE CALL! THE REFS ARE BLIND! This is rigged! We're being robbed!",
+        "analyst": "The officials appear to have made the correct call. The tape will confirm. This has been a recurring issue with discipline."
     },
     "FIELD_GOAL": {
-        "homer": "MONEY! RIGHT DOWN THE MIDDLE! OUR KICKER IS ICE COLD! CLUTCH! That's how you close out games!",
-        "skeptic": "Three points. The kick was made. His career accuracy is 87.3%. Expected result, though a touchdown would have been preferable."
+        "fan": "MONEY! RIGHT DOWN THE MIDDLE! OUR KICKER IS ICE COLD! CLUTCH! That's how you close out games!",
+        "analyst": "Three points. The kick was made. His career accuracy is 87.3%. Expected result, though a touchdown would have been preferable."
     },
     "INTERCEPTION": {
-        "homer": "HAHAHAHA! GET WRECKED! OUR DEFENSE IS ELITE! PICK SIX COMING! Feel that momentum shift!",
-        "skeptic": "That was rather predictable. The quarterback's footwork was telegraphing it. Poor decision under pressure."
+        "fan": "HAHAHAHA! GET WRECKED! OUR DEFENSE IS ELITE! PICK SIX COMING! Feel that momentum shift!",
+        "analyst": "That was rather predictable. The quarterback's footwork was telegraphing it. Poor decision under pressure."
     }
 }
 
