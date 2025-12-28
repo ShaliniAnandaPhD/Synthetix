@@ -537,7 +537,7 @@
                                 timestamp: new Date().toLocaleTimeString(),
                                 excitement: homer.excitement_score,
                                 type: homer.event_type?.toLowerCase() || 'default',
-                                locale: currentLocale
+                                locale: 'en-US'  // Fan Agent = American passionate style
                             };
                             setMessages(prev => [homerMessage, ...prev].slice(0, 50));
                             updateStats(homerMessage.type);
@@ -568,7 +568,7 @@
                                     timestamp: new Date().toLocaleTimeString(),
                                     excitement: skeptic.excitement_score,
                                     type: skeptic.event_type?.toLowerCase() || 'default',
-                                    locale: currentLocale
+                                    locale: 'en-GB'  // Analyst Agent = British analytical style
                                 };
                                 setMessages(prev => [skepticMessage, ...prev].slice(0, 50));
 
