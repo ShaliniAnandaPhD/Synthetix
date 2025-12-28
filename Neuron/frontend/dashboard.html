@@ -524,63 +524,68 @@
 
                     // Process each agent in the swarm
                     if (Array.isArray(agents)) {
+                        // Cycle through locales for variety
+                        const localeKeys = Object.keys(LOCALES);
+                        const fanLocale = localeKeys[stats.events % localeKeys.length];
+                        const analystLocale = localeKeys[(stats.events + 3) % localeKeys.length];
+
                         // Agent A (Fan Agent) - render immediately
-                        const homer = agents[0];
-                        if (homer) {
-                            const homerMessage = {
+                        const fan = agents[0];
+                        if (fan) {
+                            const fanMessage = {
                                 id: Date.now(),
-                                content: homer.content,
-                                agent: homer.name || 'Fan Agent 🔥',
-                                agent_id: homer.agent_id,
-                                persona: homer.persona,
+                                content: fan.content,
+                                agent: fan.name || 'Fan Agent 🔥',
+                                agent_id: fan.agent_id,
+                                persona: fan.persona,
                                 alignment: 'left',
                                 timestamp: new Date().toLocaleTimeString(),
-                                excitement: homer.excitement_score,
-                                type: homer.event_type?.toLowerCase() || 'default',
-                                locale: 'en-US'  // Fan Agent = American passionate style
+                                excitement: fan.excitement_score,
+                                type: fan.event_type?.toLowerCase() || 'default',
+                                locale: fanLocale
                             };
-                            setMessages(prev => [homerMessage, ...prev].slice(0, 50));
-                            updateStats(homerMessage.type);
+                            setMessages(prev => [fanMessage, ...prev].slice(0, 50));
+                            updateStats(fanMessage.type);
 
                             // Update excitement history
                             setExcitementHistory(prev => [
                                 ...prev.slice(-19),
-                                { time: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }).slice(0, 5), score: homer.excitement_score, agent: 'homer' }
+                                { time: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }).slice(0, 5), score: fan.excitement_score, agent: 'fan' }
                             ]);
 
-                            // Speak The Homer with fanatic voice
+                            // Speak Fan Agent
                             if (audioEnabled) {
-                                speak(homer.content, homer.persona);
+                                speak(fan.content, fan.persona);
                             }
                         }
 
                         // Agent B (Analyst Agent) - render after 6 seconds (no overlap)
-                        const skeptic = agents[1];
-                        if (skeptic) {
+                        const analyst = agents[1];
+                        if (analyst) {
                             setTimeout(() => {
-                                const skepticMessage = {
+                                const analystMessage = {
                                     id: Date.now() + 1,
-                                    content: skeptic.content,
-                                    agent: skeptic.name || 'Analyst Agent 🧐',
-                                    agent_id: skeptic.agent_id,
-                                    persona: skeptic.persona,
+                                    content: analyst.content,
+                                    agent: analyst.name || 'Analyst Agent 🧐',
+                                    agent_id: analyst.agent_id,
+                                    persona: analyst.persona,
                                     alignment: 'right',
                                     timestamp: new Date().toLocaleTimeString(),
-                                    excitement: skeptic.excitement_score,
-                                    type: skeptic.event_type?.toLowerCase() || 'default',
-                                    locale: 'en-GB'  // Analyst Agent = British analytical style
+                                    excitement: analyst.excitement_score,
+                                    type: analyst.event_type?.toLowerCase() || 'default',
+                                    locale: analystLocale
                                 };
-                                setMessages(prev => [skepticMessage, ...prev].slice(0, 50));
+                                setMessages(prev => [analystMessage, ...prev].slice(0, 50));
 
-                                // Update excitement history with skeptic score
+                                // Update excitement history
                                 setExcitementHistory(prev => [
                                     ...prev.slice(-19),
-                                    { time: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }).slice(0, 5), score: skeptic.excitement_score, agent: 'skeptic' }
+                                    { time: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }).slice(0, 5), score: analyst.excitement_score, agent: 'analyst' }
                                 ]);
 
-                                // Speak The Skeptic with analyst voice (only after Homer finishes)
+                                // Speak Analyst Agent
                                 if (audioEnabled) {
-                                    speak(skeptic.content, skeptic.persona);
+                                    speak(analyst.content, analyst.persona);
                                 }
                             }, 6000);
                         }
