@@ -143,20 +143,20 @@ async def simulate_event(req: SimulationRequest):
 
 DEBATE_SCRIPTS = {
     "TOUCHDOWN": {
-        "homer": "YESSSSS! TOUCHDOWN BABY! THIS IS THE GREATEST PLAY I'VE EVER SEEN! We're going all the way! Dynasty confirmed! 🔥🔥🔥",
-        "skeptic": "Right, well done. Good execution on the route. The defensive alignment was rather poor, which made this somewhat expected given the coverage."
+        "fan": "YESSSSS! TOUCHDOWN BABY! THIS IS THE GREATEST PLAY I'VE EVER SEEN! We're going all the way! Dynasty confirmed! 🔥🔥🔥",
+        "analyst": "Right, well done. Good execution on the route. The defensive alignment was rather poor, which made this somewhat expected given the coverage."
     },
     "PENALTY": {
-        "homer": "WHAT?! THAT'S A TERRIBLE CALL! THE REFS ARE BLIND! This is rigged! We're being robbed!",
-        "skeptic": "The officials appear to have made the correct call. The tape will confirm. This has been a recurring issue with discipline."
+        "fan": "WHAT?! THAT'S A TERRIBLE CALL! THE REFS ARE BLIND! This is rigged! We're being robbed!",
+        "analyst": "The officials appear to have made the correct call. The tape will confirm. This has been a recurring issue with discipline."
     },
     "FIELD_GOAL": {
-        "homer": "MONEY! RIGHT DOWN THE MIDDLE! OUR KICKER IS ICE COLD! CLUTCH! That's how you close out games!",
-        "skeptic": "Three points. The kick was made. His career accuracy is 87.3%. Expected result, though a touchdown would have been preferable."
+        "fan": "MONEY! RIGHT DOWN THE MIDDLE! OUR KICKER IS ICE COLD! CLUTCH! That's how you close out games!",
+        "analyst": "Three points. The kick was made. His career accuracy is 87.3%. Expected result, though a touchdown would have been preferable."
     },
     "INTERCEPTION": {
-        "homer": "HAHAHAHA! GET WRECKED! OUR DEFENSE IS ELITE! PICK SIX COMING! Feel that momentum shift!",
-        "skeptic": "That was rather predictable. The quarterback's footwork was telegraphing it. Poor decision under pressure."
+        "fan": "HAHAHAHA! GET WRECKED! OUR DEFENSE IS ELITE! PICK SIX COMING! Feel that momentum shift!",
+        "analyst": "That was rather predictable. The quarterback's footwork was telegraphing it. Poor decision under pressure."
     }
 }
 
@@ -223,7 +223,7 @@ async def trigger_play(request: Request):
         "request_id": request_id,
         "event_type": event_type,
         "artifacts": {
-            "debate": {"homer": debate_data["homer"], "skeptic": debate_data["skeptic"]},
+            "debate": {"fan": debate_data["fan"], "analyst": debate_data["analyst"]},
             "recap": {"content": recap_content},
             "coldOpen": {"bullets": cold_open_bullets}
         },
