@@ -529,13 +529,13 @@
                         const fanLocale = localeKeys[stats.events % localeKeys.length];
                         const analystLocale = localeKeys[(stats.events + 3) % localeKeys.length];
 
-                        // Agent A (Fan Agent) - render immediately
+                        // Agent A (Die Hard Fan) - render immediately
                         const fan = agents[0];
                         if (fan) {
                             const fanMessage = {
                                 id: Date.now(),
                                 content: fan.content,
-                                agent: fan.name || 'Fan Agent 🔥',
+                                agent: fan.name || 'Die Hard Fan 🔥',
                                 agent_id: fan.agent_id,
                                 persona: fan.persona,
                                 alignment: 'left',
@@ -553,20 +553,20 @@
                                 { time: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }).slice(0, 5), score: fan.excitement_score, agent: 'fan' }
                             ]);
 
-                            // Speak Fan Agent
+                            // Speak Die Hard Fan
                             if (audioEnabled) {
                                 speak(fan.content, fan.persona);
                             }
                         }
 
-                        // Agent B (Analyst Agent) - render after 6 seconds (no overlap)
+                        // Agent B (Analyst) - render after 6 seconds (no overlap)
                         const analyst = agents[1];
                         if (analyst) {
                             setTimeout(() => {
                                 const analystMessage = {
                                     id: Date.now() + 1,
                                     content: analyst.content,
-                                    agent: analyst.name || 'Analyst Agent 🧐',
+                                    agent: analyst.name || 'Analyst 🧐',
                                     agent_id: analyst.agent_id,
                                     persona: analyst.persona,
                                     alignment: 'right',
@@ -583,7 +583,7 @@
                                     { time: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }).slice(0, 5), score: analyst.excitement_score, agent: 'analyst' }
                                 ]);
 
-                                // Speak Analyst Agent
+                                // Speak Analyst
                                 if (audioEnabled) {
                                     speak(analyst.content, analyst.persona);
                                 }
