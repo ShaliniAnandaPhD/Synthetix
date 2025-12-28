@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Neuron Creator Console - Real-time AI content generation with cultural cognition, powered by Dolby OptiView">
+    <meta property="og:title" content="Neuron Creator Console">
+    <meta property="og:description" content="Turn live play events into culturally-tuned creator outputs in seconds">
+    <meta property="og:image" content="https://dolby-x-neuron.web.app/og-image.png">
+    <title>NEURON | Creator Console</title>
+
+    <!-- Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-deep: #050508;
+            --bg-primary: #0a0a12;
+            --bg-secondary: #0f0f1a;
+            --bg-card: rgba(20, 20, 35, 0.6);
+            --bg-glass: rgba(255, 255, 255, 0.03);
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-glow: rgba(139, 92, 246, 0.3);
+
+            --accent-purple: #a855f7;
+            --accent-violet: #8b5cf6;
+            --accent-cyan: #22d3ee;
+            --accent-emerald: #34d399;
+            --accent-amber: #fbbf24;
+            --accent-rose: #fb7185;
+
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+
+            --glow-purple: 0 0 60px rgba(168, 85, 247, 0.3), 0 0 100px rgba(168, 85, 247, 0.1);
+            --glow-cyan: 0 0 60px rgba(34, 211, 238, 0.3);
+            --glow-emerald: 0 0 40px rgba(52, 211, 153, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Animated Background */
+        .bg-gradient {
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(168, 85, 247, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 100% 100%, rgba(34, 211, 238, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse 40% 30% at 0% 80%, rgba(52, 211, 153, 0.06) 0%, transparent 50%),
+                var(--bg-deep);
+            z-index: -1;
+        }
+
+        .noise-overlay {
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Main Layout */
+        .studio-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Hero Header */
+        .hero-header {
+            text-align: center;
+            padding: 2.5rem 2rem 1.5rem;
+            background: linear-gradient(180deg, rgba(168, 85, 247, 0.08) 0%, transparent 100%);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.375rem 1rem;
+            background: rgba(168, 85, 247, 0.15);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 100px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: var(--accent-purple);
+            margin-bottom: 1rem;
+        }
+
+        .hero-title {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #fff 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 1.25rem;
+            line-height: 1.6;
+        }
+
+        .hero-subtitle strong {
+            color: var(--accent-cyan);
+        }
+
+        .hero-microcopy {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Control Bar */
+        .control-bar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 1rem 2rem;
+            background: rgba(10, 10, 18, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+            flex-wrap: wrap;
+        }
+
+        /* Cultural Lens Selector */
+        .lens-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .lens-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .lens-dropdown {
+            padding: 0.625rem 1rem;
+            padding-right: 2.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.875rem;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            min-width: 180px;
+            transition: border-color 0.2s ease;
+        }
+
+        .lens-dropdown:hover,
+        .lens-dropdown:focus {
+            border-color: var(--accent-purple);
+            outline: none;
+        }
+
+        /* Stopwatch */
+        .stopwatch-wrap {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.375rem 0.875rem;
+            background: rgba(52, 211, 153, 0.1);
+            border: 1px solid rgba(52, 211, 153, 0.2);
+            border-radius: 100px;
+        }
+
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--accent-emerald);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.4);
+            }
+
+            50% {
+                opacity: 0.7;
+                box-shadow: 0 0 0 4px rgba(52, 211, 153, 0);
+            }
+        }
+
+        .live-text {
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            color: var(--accent-emerald);
+        }
+
+        .stopwatch {
+            font-size: 1.75rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--text-primary);
+            min-width: 120px;
+        }
+
+        .stopwatch.running {
+            color: var(--accent-cyan);
+            text-shadow: var(--glow-cyan);
+        }
+
+        .stopwatch.complete {
+            color: var(--accent-emerald);
+            text-shadow: var(--glow-emerald);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .run-btn {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-violet) 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(168, 85, 247, 0.3);
+        }
+
+        .run-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(168, 85, 247, 0.4);
+        }
+
+        .run-btn:active {
+            transform: translateY(0);
+        }
+
+        .run-btn:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        .replay-btn {
+            padding: 0.75rem 1.25rem;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .replay-btn:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .share-btn {
+            padding: 0.75rem 1.25rem;
+            background: transparent;
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            border-radius: 10px;
+            color: var(--accent-cyan);
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .share-btn:hover {
+            background: rgba(34, 211, 238, 0.1);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+        }
+
+        /* Total Time Banner */
+        .total-time-banner {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            padding: 1.25rem 2rem;
+            background: linear-gradient(135deg, rgba(52, 211, 153, 0.1) 0%, rgba(34, 211, 238, 0.1) 100%);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            border-radius: 16px;
+            margin-bottom: 1.5rem;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .total-time-banner.visible {
+            display: flex;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .total-time-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .total-time-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-emerald);
+            text-shadow: var(--glow-emerald);
+        }
+
+        .share-results-btn {
+            padding: 0.5rem 1rem;
+            background: var(--accent-emerald);
+            border: none;
+            border-radius: 8px;
+            color: #0a0a12;
+            font-family: inherit;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .share-results-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Artifacts Grid */
+        .artifacts-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .artifact-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0.5;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .artifact-card.loading {
+            opacity: 0.7;
+            border-color: rgba(251, 191, 36, 0.3);
+        }
+
+        .artifact-card.ready {
+            opacity: 1;
+            border-color: rgba(52, 211, 153, 0.4);
+            box-shadow: 0 0 40px rgba(52, 211, 153, 0.1);
+        }
+
+        .artifact-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .artifact-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .artifact-icon-wrap {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .artifact-card:nth-child(1) .artifact-icon-wrap {
+            background: rgba(168, 85, 247, 0.2);
+        }
+
+        .artifact-card:nth-child(2) .artifact-icon-wrap {
+            background: rgba(34, 211, 238, 0.2);
+        }
+
+        .artifact-card:nth-child(3) .artifact-icon-wrap {
+            background: rgba(251, 191, 36, 0.2);
+        }
+
+        .artifact-info h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.125rem;
+        }
+
+        .artifact-info span {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        .artifact-timing {
+            padding: 0.25rem 0.625rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .artifact-timing.ready {
+            background: rgba(52, 211, 153, 0.15);
+            color: var(--accent-emerald);
+        }
+
+        /* Cultural Profile Badge */
+        .cultural-profile {
+            display: none;
+            padding: 0.75rem 1.25rem;
+            background: rgba(168, 85, 247, 0.08);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .cultural-profile.visible {
+            display: block;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+        }
+
+        .profile-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.125rem;
+        }
+
+        .profile-label {
+            font-size: 0.6rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .profile-value {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--accent-purple);
+        }
+
+        /* Scrollable Content */
+        .artifact-content {
+            flex: 1;
+            padding: 1.25rem;
+            font-size: 0.875rem;
+            line-height: 1.7;
+            color: var(--text-secondary);
+            max-height: 220px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+        }
+
+        .artifact-content::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .artifact-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .artifact-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .artifact-content.has-content {
+            color: var(--text-primary);
+        }
+
+        /* Loading skeleton */
+        .skeleton-line {
+            height: 14px;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.06) 50%, rgba(255, 255, 255, 0.03) 75%);
+            background-size: 200% 100%;
+            border-radius: 4px;
+            margin-bottom: 0.75rem;
+            animation: skeleton 1.5s infinite;
+        }
+
+        @keyframes skeleton {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        /* Debate styling */
+        .debate-speaker {
+            margin-bottom: 1rem;
+            padding: 0.875rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            border-left: 3px solid;
+        }
+
+        .debate-speaker.homer {
+            border-color: var(--accent-emerald);
+        }
+
+        .debate-speaker.skeptic {
+            border-color: var(--accent-cyan);
+        }
+
+        .debate-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .debate-speaker.homer .debate-label {
+            color: var(--accent-emerald);
+        }
+
+        .debate-speaker.skeptic .debate-label {
+            color: var(--accent-cyan);
+        }
+
+        .debate-text {
+            font-style: italic;
+            color: var(--text-primary);
+        }
+
+        /* Bullet points */
+        .cold-open-bullet {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+            padding: 0.625rem 0.875rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        .bullet-icon {
+            color: var(--accent-amber);
+            font-size: 0.875rem;
+            margin-top: 0.125rem;
+        }
+
+        .bullet-text {
+            color: var(--text-primary);
+        }
+
+        /* Artifact Footer */
+        .artifact-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.875rem 1.25rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .copy-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.5rem 0.875rem;
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            opacity: 0.5;
+        }
+
+        .copy-btn.active {
+            opacity: 1;
+        }
+
+        .copy-btn.active:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .publish-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(52, 211, 153, 0.15);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            border-radius: 8px;
+            color: var(--accent-emerald);
+            font-family: inherit;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            opacity: 0.3;
+        }
+
+        .publish-btn.active {
+            opacity: 1;
+        }
+
+        .publish-btn.active:hover {
+            background: var(--accent-emerald);
+            color: var(--bg-deep);
+        }
+
+        /* Footer */
+        .studio-footer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            padding: 1.25rem;
+            border-top: 1px solid var(--border-subtle);
+            background: rgba(10, 10, 18, 0.5);
+        }
+
+        .footer-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .footer-item strong {
+            color: var(--text-secondary);
+        }
+
+        /* Event Type Buttons */
+        .event-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .event-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .event-btn:hover {
+            border-color: var(--accent-purple);
+            color: var(--text-primary);
+            transform: translateY(-2px);
+        }
+
+        .event-btn.active {
+            background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-violet) 100%);
+            border-color: var(--accent-purple);
+            color: white;
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
+        }
+
+        .event-btn.td {
+            --btn-color: #22c55e;
+        }
+
+        .event-btn.int {
+            --btn-color: #ef4444;
+        }
+
+        .event-btn.fg {
+            --btn-color: #f59e0b;
+        }
+
+        .event-btn.fumble {
+            --btn-color: #f97316;
+        }
+
+        .event-btn.penalty {
+            --btn-color: #eab308;
+        }
+
+        .event-btn:hover.td {
+            border-color: #22c55e;
+            color: #22c55e;
+        }
+
+        .event-btn:hover.int {
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        .event-btn:hover.fg {
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
+
+        .event-btn:hover.fumble {
+            border-color: #f97316;
+            color: #f97316;
+        }
+
+        .event-btn:hover.penalty {
+            border-color: #eab308;
+            color: #eab308;
+        }
+
+        /* Cascading Card Animation */
+        .artifact-card {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(20px);
+        }
+
+        .artifact-card.cascade-1 {
+            transition-delay: 0ms;
+        }
+
+        .artifact-card.cascade-2 {
+            transition-delay: 200ms;
+        }
+
+        .artifact-card.cascade-3 {
+            transition-delay: 400ms;
+        }
+
+        .artifact-card.revealed {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Glow Pulse on Complete */
+        @keyframes glowPulse {
+            0% {
+                box-shadow: 0 0 20px rgba(52, 211, 153, 0.3);
+            }
+
+            50% {
+                box-shadow: 0 0 40px rgba(52, 211, 153, 0.6), 0 0 60px rgba(52, 211, 153, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 20px rgba(52, 211, 153, 0.3);
+            }
+        }
+
+        .artifact-card.ready {
+            animation: glowPulse 1.5s ease-in-out;
+        }
+
+        /* Typewriter Effect */
+        .typewriter {
+            overflow: hidden;
+            white-space: pre-wrap;
+        }
+
+        .typewriter.typing {
+            border-right: 2px solid var(--accent-cyan);
+            animation: blink 0.7s step-end infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                border-color: transparent;
+            }
+        }
+
+        /* Current Event Display */
+        .current-event {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 10px;
+        }
+
+        .current-event-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .current-event-value {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent-purple);
+        }
+
+        /* Floating Particles */
+        .particles {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--accent-purple);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 15s infinite ease-in-out;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 0.3;
+            }
+
+            90% {
+                opacity: 0.3;
+            }
+
+            100% {
+                transform: translateY(-100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 1100px) {
+            .artifacts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .control-bar {
+                gap: 1rem;
+            }
+
+            .event-buttons {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-gradient"></div>
+    <div class="noise-overlay"></div>
+
+    <div class="studio-container">
+        <!-- Hero Header -->
+        <header class="hero-header">
+            <div class="hero-badge">
+                <span>🧠</span>
+                <span>NEURON + DOLBY OPTIVIEW</span>
+            </div>
+            <h1 class="hero-title">Live play in. Creator-ready out.</h1>
+            <p class="hero-subtitle">
+                Neuron renders <strong>culturally-tuned</strong> debate outputs, and Dolby OptiView streams the Creator
+                Console for real-time engagement.
+            </p>
+            <p class="hero-microcopy">Switch cultural lenses to re-render the same play for different audiences.</p>
+        </header>
+
+        <!-- Control Bar -->
+        <div class="control-bar">
+            <!-- Cultural Lens -->
+            <div class="lens-selector">
+                <span class="lens-label">🌍 Cultural Lens</span>
+                <select class="lens-dropdown" id="culturalLens" onchange="onLensChange()">
+                    <option value="neutral">Neutral Analyst</option>
+                    <option value="local">Local Fan</option>
+                    <option value="rival">Rival Fan</option>
+                    <option value="international">International Audience</option>
+                    <option value="betting">Betting Recap</option>
+                </select>
+            </div>
+
+            <!-- Stopwatch -->
+            <div class="stopwatch-wrap">
+                <div class="live-indicator">
+                    <div class="live-dot"></div>
+                    <span class="live-text">LIVE</span>
+                </div>
+                <div class="stopwatch font-mono" id="stopwatch">0.00s</div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="run-btn" id="runBtn" onclick="triggerPlay()">▶ Run Demo</button>
+                <button class="replay-btn" onclick="replayDemo()">↺ Replay</button>
+                <button class="share-btn" onclick="shareStudio()">📤 Copy Link</button>
+            </div>
+        </div>
+
+        <!-- Event Type Buttons -->
+        <div class="event-buttons">
+            <button class="event-btn td active" id="btnTD" onclick="selectEvent('TOUCHDOWN')">🏈 TOUCHDOWN</button>
+            <button class="event-btn int" id="btnINT" onclick="selectEvent('INTERCEPTION')">🔴 INTERCEPTION</button>
+            <button class="event-btn fg" id="btnFG" onclick="selectEvent('FIELD_GOAL')">⚽ FIELD GOAL</button>
+            <button class="event-btn fumble" id="btnFUMBLE" onclick="selectEvent('FUMBLE')">💥 FUMBLE</button>
+            <button class="event-btn penalty" id="btnPENALTY" onclick="selectEvent('PENALTY')">🚩 PENALTY</button>
+            <div class="current-event">
+                <span class="current-event-label">Playing:</span>
+                <span class="current-event-value" id="currentEventDisplay">Travis Kelce • Chiefs • TD</span>
+            </div>
+        </div>
+
+        <!-- Floating Particles -->
+        <div class="particles" id="particles"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Total Time Banner -->
+            <div class="total-time-banner" id="totalTimeBanner">
+                <span class="total-time-label">Total Generation Time</span>
+                <span class="total-time-value font-mono" id="totalTimeValue">0.00s</span>
+                <button class="share-results-btn" onclick="shareResults()">Share Results</button>
+            </div>
+
+            <!-- Artifacts Grid -->
+            <div class="artifacts-grid">
+                <!-- Debate Card -->
+                <article class="artifact-card" id="debateCard">
+                    <div class="artifact-header">
+                        <div class="artifact-meta">
+                            <div class="artifact-icon-wrap">🎤</div>
+                            <div class="artifact-info">
+                                <h3>Two-Voice Debate</h3>
+                                <span>Homer vs Skeptic</span>
+                            </div>
+                        </div>
+                        <div class="artifact-timing" id="debateTiming">--</div>
+                    </div>
+                    <div class="cultural-profile" id="debateProfile">
+                        <div class="profile-grid">
+                            <div class="profile-item">
+                                <span class="profile-label">Tone</span>
+                                <span class="profile-value" id="debateTone">Balanced</span>
+                            </div>
+                            <div class="profile-item">
+                                <span class="profile-label">Tempo</span>
+                                <span class="profile-value" id="debateTempo">Medium</span>
+                            </div>
+                            <div class="profile-item">
+                                <span class="profile-label">Audience</span>
+                                <span class="profile-value" id="debateAudience">General</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="artifact-content" id="debateContent">
+                        <div class="skeleton-line" style="width: 90%;"></div>
+                        <div class="skeleton-line" style="width: 75%;"></div>
+                        <div class="skeleton-line" style="width: 85%;"></div>
+                    </div>
+                    <div class="artifact-footer">
+                        <button class="copy-btn" id="debateCopy" onclick="copyContent('debate')">📋 Copy</button>
+                        <button class="publish-btn" id="debatePublish">Publish →</button>
+                    </div>
+                </article>
+
+                <!-- Recap Card -->
+                <article class="artifact-card" id="recapCard">
+                    <div class="artifact-header">
+                        <div class="artifact-meta">
+                            <div class="artifact-icon-wrap">📝</div>
+                            <div class="artifact-info">
+                                <h3>Punchline Recap</h3>
+                                <span>Shareable paragraph</span>
+                            </div>
+                        </div>
+                        <div class="artifact-timing" id="recapTiming">--</div>
+                    </div>
+                    <div class="cultural-profile" id="recapProfile">
+                        <div class="profile-grid">
+                            <div class="profile-item">
+                                <span class="profile-label">Tone</span>
+                                <span class="profile-value" id="recapTone">Balanced</span>
+                            </div>
+                            <div class="profile-item">
+                                <span class="profile-label">Tempo</span>
+                                <span class="profile-value" id="recapTempo">Medium</span>
+                            </div>
+                            <div class="profile-item">
+                                <span class="profile-label">Audience</span>
+                                <span class="profile-value" id="recapAudience">General</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="artifact-content" id="recapContent">
+                        <div class="skeleton-line" style="width: 95%;"></div>
+                        <div class="skeleton-line" style="width: 80%;"></div>
+                    </div>
+                    <div class="artifact-footer">
+                        <button class="copy-btn" id="recapCopy" onclick="copyContent('recap')">📋 Copy</button>
+                        <button class="publish-btn" id="recapPublish">Publish →</button>
+                    </div>
+                </article>
+
+                <!-- Cold Open Card -->
+                <article class="artifact-card" id="coldOpenCard">
+                    <div class="artifact-header">
+                        <div class="artifact-meta">
+                            <div class="artifact-icon-wrap">🚀</div>
+                            <div class="artifact-info">
+                                <h3>Cold Open</h3>
+                                <span>Three-bullet opener</span>
+                            </div>
+                        </div>
+                        <div class="artifact-timing" id="coldOpenTiming">--</div>
+                    </div>
+                    <div class="cultural-profile" id="coldOpenProfile">
+                        <div class="profile-grid">
+                            <div class="profile-item">
+                                <span class="profile-label">Tone</span>
+                                <span class="profile-value" id="coldOpenTone">Balanced</span>
+                            </div>
+                            <div class="profile-item">
+                                <span class="profile-label">Tempo</span>
+                                <span class="profile-value" id="coldOpenTempo">Medium</span>
+                            </div>
+                            <div class="profile-item">
+                                <span class="profile-label">Audience</span>
+                                <span class="profile-value" id="coldOpenAudience">General</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="artifact-content" id="coldOpenContent">
+                        <div class="skeleton-line" style="width: 70%;"></div>
+                        <div class="skeleton-line" style="width: 85%;"></div>
+                        <div class="skeleton-line" style="width: 65%;"></div>
+                    </div>
+                    <div class="artifact-footer">
+                        <button class="copy-btn" id="coldOpenCopy" onclick="copyContent('coldOpen')">📋 Copy</button>
+                        <button class="publish-btn" id="coldOpenPublish">Publish →</button>
+                    </div>
+                </article>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="studio-footer">
+            <div class="footer-item"><span>🧠</span><strong>Neuron AI</strong></div>
+            <div class="footer-item"><span>×</span></div>
+            <div class="footer-item"><span>🎬</span><strong>Dolby OptiView</strong></div>
+            <div class="footer-item"><span>=</span></div>
+            <div class="footer-item"><span>⚡</span><strong>Real-Time Creator Magic</strong></div>
+        </footer>
+    </div>
+
+    <script>
+        // ============ CONFIG ============
+        const API_BASE = 'https://neuron-api-582963349700.us-central1.run.app';
+        const TIMEOUT_MS = 15000;
+
+        // ============ DEMO EVENT SCENARIOS ============
+        const DEMO_EVENTS = {
+            TOUCHDOWN: [
+                { team: 'Kansas City Chiefs', player: 'Travis Kelce', yards: 45, emoji: '🏈' },
+                { team: 'San Francisco 49ers', player: 'Deebo Samuel', yards: 38, emoji: '🏈' },
+                { team: 'Miami Dolphins', player: 'Tyreek Hill', yards: 67, emoji: '🏈' },
+                { team: 'Buffalo Bills', player: 'Stefon Diggs', yards: 52, emoji: '🏈' },
+            ],
+            INTERCEPTION: [
+                { team: 'Dallas Cowboys', player: 'Trevon Diggs', yards: 0, emoji: '🔴' },
+                { team: 'New York Jets', player: 'Sauce Gardner', yards: 0, emoji: '🔴' },
+                { team: 'Baltimore Ravens', player: 'Marcus Williams', yards: 0, emoji: '🔴' },
+            ],
+            FIELD_GOAL: [
+                { team: 'Baltimore Ravens', player: 'Justin Tucker', yards: 52, emoji: '⚽' },
+                { team: 'Jacksonville Jaguars', player: 'Brandon McManus', yards: 48, emoji: '⚽' },
+            ],
+            FUMBLE: [
+                { team: 'Philadelphia Eagles', player: 'Jalen Hurts', yards: 0, emoji: '💥' },
+                { team: 'Las Vegas Raiders', player: 'Josh Jacobs', yards: 0, emoji: '💥' },
+            ],
+            PENALTY: [
+                { team: 'Green Bay Packers', player: 'Defensive Holding', yards: 5, emoji: '🚩' },
+                { team: 'New England Patriots', player: 'Pass Interference', yards: 15, emoji: '🚩' },
+            ]
+        };
+
+        // ============ CULTURAL LENS PROFILES ============
+        const CULTURAL_PROFILES = {
+            neutral: { tone: 'Balanced', tempo: 'Medium', audience: 'General' },
+            local: { tone: 'Passionate', tempo: 'Fast', audience: 'Home Fans' },
+            rival: { tone: 'Skeptical', tempo: 'Measured', audience: 'Opposing Fans' },
+            international: { tone: 'Educational', tempo: 'Slow', audience: 'Global Sports Fans' },
+            betting: { tone: 'Sharp', tempo: 'Fast', audience: 'Bettors' }
+        };
+
+        // ============ CONTENT TEMPLATES (fallback when API unavailable) ============
+        const CONTENT_TEMPLATES = {
+            TOUCHDOWN: {
+                debate: {
+                    homer: "YESSSSS! TOUCHDOWN! What a play! {player} just made the play of his career! {yards} yards of PURE MAGIC! 🔥",
+                    skeptic: "Good play, well executed. The {yards}-yard completion to {player} exploited a coverage breakdown. Credit where due."
+                },
+                recap: "In a pivotal moment, {player} caught a {yards}-yard touchdown pass, giving the {team} momentum. The stadium erupted as they took the lead.",
+                coldOpen: ["{player} breaks free down the seam", "{yards} yards of pure magic in the fourth quarter", "{team} takes the lead with time running out"]
+            },
+            INTERCEPTION: {
+                debate: {
+                    homer: "PICKED OFF! {player} read that like a BOOK! Our defense is ELITE! Get that weak throw outta here!",
+                    skeptic: "That was rather predictable. The quarterback's footwork was telegraphing it. {player} made a routine read."
+                },
+                recap: "A crucial turnover as {player} came up with the interception for the {team}. Momentum has completely shifted.",
+                coldOpen: ["Ball in the air... PICKED OFF!", "{team} defense comes up clutch", "Momentum completely flipped in an instant"]
+            },
+            FIELD_GOAL: {
+                debate: {
+                    homer: "MONEY! {player} is AUTOMATIC from {yards} yards! Ice in his veins! That's why he's the best!",
+                    skeptic: "Three points. The kick was made from {yards} yards. Expected result given his career accuracy."
+                },
+                recap: "When the game was on the line, {player} delivered for the {team} with a {yards}-yard field goal. Clutch.",
+                coldOpen: ["{player} lines up for the game-winner", "{yards} yards between victory and heartbreak", "The kick is up... and it's GOOD!"]
+            },
+            FUMBLE: {
+                debate: {
+                    homer: "STRIP SACK! We punched that ball OUT! Defense came to PLAY today! Let's GOOO!",
+                    skeptic: "Poor ball security from {player}. Statistically, fumbles like this often decide close games."
+                },
+                recap: "A devastating fumble by {player} gives the ball back to the {team}. This could be the turning point.",
+                coldOpen: ["Ball is loose on the field!", "{team} recovers at the 30-yard line", "Turnover changes everything"]
+            },
+            PENALTY: {
+                debate: {
+                    homer: "WHAT?! That's a TERRIBLE call! The refs are BLIND! This is RIGGED!",
+                    skeptic: "The officials appear correct. {player} on the {team} - a {yards}-yard penalty. Undisciplined play."
+                },
+                recap: "A controversial {player} call against the {team}. {yards}-yard penalty that could prove costly.",
+                coldOpen: ["Yellow flag flies at the worst moment", "Controversial call sparks sideline eruption", "Game hangs in the balance after review"]
+            }
+        };
+
+        // ============ Cultural overlays for content generation ============
+        const CULTURAL_OVERLAYS = {
+            neutral: { homerMod: '', skepticMod: '', recapMod: '' },
+            local: {
+                homerMod: 'ALL CAPS ENERGY! DYNASTY! GREATEST TEAM EVER! 🔥🔥🔥',
+                skepticMod: 'Okay, I have to admit... that was impressive.',
+                recapMod: 'THIS IS WHY WE\'RE THE BEST FANS IN SPORTS! '
+            },
+            rival: {
+                homerMod: 'Lucky. Anyone could do that. Don\'t get excited.',
+                skepticMod: 'Let\'s be real - that only worked because of a mistake.',
+                recapMod: 'Got lucky. One play doesn\'t change anything. '
+            },
+            international: {
+                homerMod: 'For international viewers, this is spectacular!',
+                skepticMod: 'This is an excellent example of American football strategy.',
+                recapMod: 'An impressive demonstration of strategic depth. '
+            },
+            betting: {
+                homerMod: 'MONEY! Line is MOVING! Sharp money incoming!',
+                skepticMod: 'Expected points added: significant. Probability shift notable.',
+                recapMod: 'Win probability shifted. Line movement in play. '
+            }
+        };
+
+        // ============ STATE ============
+        let isRunning = false;
+        let startTime = 0;
+        let stopwatchInterval = null;
+        let artifactsReceived = { debate: false, recap: false, coldOpen: false };
+        let artifactData = { debate: '', recap: '', coldOpen: '' };
+        let currentLens = 'neutral';
+        let currentEventType = 'TOUCHDOWN';
+        let currentScenario = null;
+
+        // ============ PARTICLES ============
+        function initParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        // ============ EVENT SELECTION ============
+        function selectEvent(eventType) {
+            currentEventType = eventType;
+
+            // Update button states
+            document.querySelectorAll('.event-btn').forEach(btn => btn.classList.remove('active'));
+            const btnId = 'btn' + eventType.replace('_', '').replace('TOUCHDOWN', 'TD').replace('INTERCEPTION', 'INT').replace('FIELD_GOAL', 'FG');
+            document.getElementById(btnId)?.classList.add('active');
+
+            // Select random scenario for this event type
+            const scenarios = DEMO_EVENTS[eventType];
+            currentScenario = scenarios[Math.floor(Math.random() * scenarios.length)];
+
+            // Update display
+            const display = document.getElementById('currentEventDisplay');
+            display.textContent = `${currentScenario.player} • ${currentScenario.team.split(' ').pop()} • ${eventType.replace('_', ' ')}`;
+        }
+
+        // ============ STOPWATCH ============
+        function startStopwatch() {
+            startTime = Date.now();
+            const el = document.getElementById('stopwatch');
+            el.classList.add('running');
+            el.classList.remove('complete');
+            stopwatchInterval = setInterval(() => {
+                el.textContent = ((Date.now() - startTime) / 1000).toFixed(2) + 's';
+            }, 50);
+        }
+
+        function stopStopwatch() {
+            if (stopwatchInterval) clearInterval(stopwatchInterval);
+            stopwatchInterval = null;
+            const el = document.getElementById('stopwatch');
+            el.classList.remove('running');
+            el.classList.add('complete');
+        }
+
+        function getElapsedTime() {
+            return ((Date.now() - startTime) / 1000).toFixed(2);
+        }
+
+        // ============ UI ============
+        function setButtonState(running) {
+            const btn = document.getElementById('runBtn');
+            btn.disabled = running;
+            btn.textContent = running ? '⏳ Generating...' : '▶ Run Demo';
+        }
+
+        function updateCulturalProfiles() {
+            const profile = CULTURAL_PROFILES[currentLens];
+            ['debate', 'recap', 'coldOpen'].forEach(type => {
+                document.getElementById(type + 'Tone').textContent = profile.tone;
+                document.getElementById(type + 'Tempo').textContent = profile.tempo;
+                document.getElementById(type + 'Audience').textContent = profile.audience;
+                document.getElementById(type + 'Profile').classList.add('visible');
+            });
+        }
+
+        // ============ TYPEWRITER EFFECT ============
+        function typewriterEffect(element, text, callback) {
+            element.innerHTML = '';
+            element.classList.add('typewriter', 'typing');
+            let i = 0;
+            const speed = 15; // ms per character
+
+            function type() {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                } else {
+                    element.classList.remove('typing');
+                    if (callback) callback();
+                }
+            }
+            type();
+        }
+
+        function updateArtifact(type, content, timing, rawContent, useTypewriter = false) {
+            const card = document.getElementById(type + 'Card');
+            const contentEl = document.getElementById(type + 'Content');
+            const timingEl = document.getElementById(type + 'Timing');
+            const copyBtn = document.getElementById(type + 'Copy');
+            const publishBtn = document.getElementById(type + 'Publish');
+
+            if (useTypewriter && typeof content === 'string') {
+                typewriterEffect(contentEl, content, () => {
+                    finishArtifact();
+                });
+            } else {
+                contentEl.innerHTML = content;
+                finishArtifact();
+            }
+
+            function finishArtifact() {
+                contentEl.classList.add('has-content');
+                timingEl.textContent = timing + 's';
+                timingEl.classList.add('ready');
+                card.classList.remove('loading');
+                card.classList.add('ready', 'revealed');
+                copyBtn.classList.add('active');
+                publishBtn.classList.add('active');
+
+                artifactData[type] = rawContent;
+                artifactsReceived[type] = true;
+
+                if (artifactsReceived.debate && artifactsReceived.recap && artifactsReceived.coldOpen) {
+                    onAllComplete();
+                }
+            }
+        }
+
+        function setArtifactLoading(type, cascadeIndex) {
+            const card = document.getElementById(type + 'Card');
+            card.classList.add('loading', `cascade-${cascadeIndex}`);
+            card.classList.remove('ready', 'revealed');
+        }
+
+        function onAllComplete() {
+            stopStopwatch();
+            isRunning = false;
+            setButtonState(false);
+            document.getElementById('totalTimeValue').textContent = getElapsedTime() + 's';
+            document.getElementById('totalTimeBanner').classList.add('visible');
+        }
+
+        // ============ RESET ============
+        function resetStudio() {
+            if (stopwatchInterval) clearInterval(stopwatchInterval);
+            isRunning = false;
+            artifactsReceived = { debate: false, recap: false, coldOpen: false };
+            artifactData = { debate: '', recap: '', coldOpen: '' };
+
+            document.getElementById('stopwatch').textContent = '0.00s';
+            document.getElementById('stopwatch').classList.remove('running', 'complete');
+            setButtonState(false);
+            document.getElementById('totalTimeBanner').classList.remove('visible');
+
+            ['debate', 'recap', 'coldOpen'].forEach((type, idx) => {
+                const card = document.getElementById(type + 'Card');
+                const content = document.getElementById(type + 'Content');
+                const timing = document.getElementById(type + 'Timing');
+                const copy = document.getElementById(type + 'Copy');
+                const publish = document.getElementById(type + 'Publish');
+                const profile = document.getElementById(type + 'Profile');
+
+                card.classList.remove('ready', 'loading', 'revealed', 'cascade-1', 'cascade-2', 'cascade-3');
+                timing.textContent = '--';
+                timing.classList.remove('ready');
+                copy.classList.remove('active');
+                publish.classList.remove('active');
+                profile.classList.remove('visible');
+                content.classList.remove('has-content', 'typewriter', 'typing');
+                content.innerHTML = `
+                    <div class="skeleton-line" style="width: ${70 + Math.random() * 25}%;"></div>
+                    <div class="skeleton-line" style="width: ${60 + Math.random() * 30}%;"></div>
+                    <div class="skeleton-line" style="width: ${65 + Math.random() * 25}%;"></div>
+                `;
+            });
+        }
+
+        // ============ GENERATE CONTENT ============
+        function generateContent(template, scenario, lens) {
+            const overlay = CULTURAL_OVERLAYS[lens];
+
+            // Replace placeholders
+            let content = template
+                .replace(/{player}/g, scenario.player)
+                .replace(/{team}/g, scenario.team)
+                .replace(/{yards}/g, scenario.yards);
+
+            return content;
+        }
+
+        // ============ TRIGGER PLAY WITH API ============
+        async function triggerPlay() {
+            if (isRunning) return;
+
+            resetStudio();
+            isRunning = true;
+            setButtonState(true);
+            startStopwatch();
+            updateCulturalProfiles();
+
+            // Ensure we have a scenario
+            if (!currentScenario) {
+                selectEvent(currentEventType);
+            }
+
+            // Set loading state with cascade delays
+            setArtifactLoading('debate', 1);
+            setArtifactLoading('recap', 2);
+            setArtifactLoading('coldOpen', 3);
+
+            currentLens = document.getElementById('culturalLens').value;
+
+            // Try API first, fallback to local generation
+            try {
+                const response = await Promise.race([
+                    fetch(`${API_BASE}/play`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            event_type: currentEventType,
+                            team: currentScenario.team,
+                            player: currentScenario.player,
+                            yards: currentScenario.yards,
+                            cultural_lens: currentLens
+                        })
+                    }),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), TIMEOUT_MS))
+                ]);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('📡 API Response:', data);
+                    renderFromAPI(data);
+                    return;
+                }
+            } catch (err) {
+                console.log('⚠️ API unavailable, using local generation:', err.message);
+            }
+
+            // Fallback to local generation
+            renderLocalContent();
+        }
+
+        function renderFromAPI(data) {
+            const artifacts = data.artifacts;
+            const timings = data.timings;
+
+            // Debate
+            setTimeout(() => {
+                const html = `
+                    <div class="debate-speaker homer">
+                        <div class="debate-label">🔥 The Homer</div>
+                        <div class="debate-text">"${artifacts.debate.homer}"</div>
+                    </div>
+                    <div class="debate-speaker skeptic">
+                        <div class="debate-label">🧐 The Skeptic</div>
+                        <div class="debate-text">"${artifacts.debate.skeptic}"</div>
+                    </div>
+                `;
+                updateArtifact('debate', html, getElapsedTime(), `HOMER: ${artifacts.debate.homer}\n\nSKEPTIC: ${artifacts.debate.skeptic}`);
+            }, 800);
+
+            // Recap
+            setTimeout(() => {
+                updateArtifact('recap', `<p>${artifacts.recap.content}</p>`, getElapsedTime(), artifacts.recap.content);
+            }, 1400);
+
+            // Cold Open
+            setTimeout(() => {
+                const bulletsHtml = artifacts.coldOpen.bullets.map(b => `
+                    <div class="cold-open-bullet">
+                        <span class="bullet-icon">→</span>
+                        <span class="bullet-text">${b}</span>
+                    </div>
+                `).join('');
+                updateArtifact('coldOpen', bulletsHtml, getElapsedTime(), artifacts.coldOpen.bullets.map(b => `• ${b}`).join('\n'));
+            }, 2000);
+        }
+
+        function renderLocalContent() {
+            const template = CONTENT_TEMPLATES[currentEventType];
+            const scenario = currentScenario;
+            const overlay = CULTURAL_OVERLAYS[currentLens];
+
+            // Debate - with cultural overlay
+            setTimeout(() => {
+                let homerText = generateContent(template.debate.homer, scenario, currentLens);
+                let skepticText = generateContent(template.debate.skeptic, scenario, currentLens);
+
+                if (currentLens !== 'neutral') {
+                    homerText = overlay.homerMod + ' ' + homerText;
+                    skepticText = overlay.skepticMod;
+                }
+
+                const html = `
+                    <div class="debate-speaker homer">
+                        <div class="debate-label">🔥 The Homer</div>
+                        <div class="debate-text">"${homerText}"</div>
+                    </div>
+                    <div class="debate-speaker skeptic">
+                        <div class="debate-label">🧐 The Skeptic</div>
+                        <div class="debate-text">"${skepticText}"</div>
+                    </div>
+                `;
+                updateArtifact('debate', html, getElapsedTime(), `HOMER: ${homerText}\n\nSKEPTIC: ${skepticText}`);
+            }, 1200 + Math.random() * 300);
+
+            // Recap
+            setTimeout(() => {
+                let recapText = generateContent(template.recap, scenario, currentLens);
+                if (currentLens !== 'neutral') {
+                    recapText = overlay.recapMod + recapText;
+                }
+                updateArtifact('recap', `<p>${recapText}</p>`, getElapsedTime(), recapText);
+            }, 2000 + Math.random() * 300);
+
+            // Cold Open
+            setTimeout(() => {
+                const bullets = template.coldOpen.map(b => generateContent(b, scenario, currentLens));
+                const bulletsHtml = bullets.map(b => `
+                    <div class="cold-open-bullet">
+                        <span class="bullet-icon">→</span>
+                        <span class="bullet-text">${b}</span>
+                    </div>
+                `).join('');
+                updateArtifact('coldOpen', bulletsHtml, getElapsedTime(), bullets.map(b => `• ${b}`).join('\n'));
+            }, 2800 + Math.random() * 300);
+        }
+
+        function replayDemo() {
+            // Select a new random scenario for variety
+            selectEvent(currentEventType);
+            triggerPlay();
+        }
+
+        function onLensChange() {
+            currentLens = document.getElementById('culturalLens').value;
+            if (artifactsReceived.debate) {
+                // Re-render with new cultural lens
+                resetStudio();
+                triggerPlay();
+            }
+        }
+
+        // ============ SHARE ============
+        function copyContent(type) {
+            if (artifactData[type]) {
+                navigator.clipboard.writeText(artifactData[type]);
+                const btn = document.getElementById(type + 'Copy');
+                btn.textContent = '✓ Copied!';
+                setTimeout(() => btn.innerHTML = '📋 Copy', 2000);
+            }
+        }
+
+        function shareStudio() {
+            navigator.clipboard.writeText(window.location.href);
+            const btn = document.querySelector('.share-btn');
+            btn.textContent = '✓ Copied!';
+            setTimeout(() => btn.innerHTML = '📤 Copy Link', 2000);
+        }
+
+        function shareResults() {
+            const time = document.getElementById('totalTimeValue').textContent;
+            const lens = CULTURAL_PROFILES[currentLens].audience;
+            const event = currentEventType.replace('_', ' ');
+            const text = `⚡ Generated 3 creator-ready artifacts in ${time}\n🏈 Event: ${event}\n🌍 Cultural lens: ${lens}\n\n🎤 Debate script\n📝 Recap paragraph\n🚀 Cold open bullets\n\nTry it: ${window.location.href}`;
+            navigator.clipboard.writeText(text);
+            const btn = document.querySelector('.share-results-btn');
+            btn.textContent = '✓ Copied!';
+            setTimeout(() => btn.textContent = 'Share Results', 2000);
+        }
+
+        // ============ INIT ============
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🎬 Neuron Creator Console v4.0 - Hackathon Demo Edition');
+            initParticles();
+            selectEvent('TOUCHDOWN'); // Default to TD
+        });
+    </script>
+</body>
+
+</html>

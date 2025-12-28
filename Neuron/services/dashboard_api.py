@@ -186,6 +186,125 @@ async def simulate_event(request: Request):
     return swarm_response
 
 
+# =============================================================================
+# CREATOR STUDIO: /play endpoint
+# Generates all 3 artifacts for the Dolby OptiView demo
+# =============================================================================
+
+# Sample content for each artifact type
+DEBATE_SCRIPTS = {
+    "TOUCHDOWN": {
+        "homer": "YESSSSS! TOUCHDOWN BABY! THIS IS THE GREATEST PLAY I'VE EVER SEEN! We're going all the way! Dynasty confirmed! 🔥🔥🔥",
+        "skeptic": "Right, well done. Good execution on the route. The defensive alignment was rather poor, which made this somewhat expected given the coverage."
+    },
+    "PENALTY": {
+        "homer": "WHAT?! THAT'S A TERRIBLE CALL! THE REFS ARE BLIND! This is rigged! We're being robbed!",
+        "skeptic": "The officials appear to have made the correct call. The tape will confirm. This has been a recurring issue with discipline."
+    },
+    "FIELD_GOAL": {
+        "homer": "MONEY! RIGHT DOWN THE MIDDLE! OUR KICKER IS ICE COLD! CLUTCH! That's how you close out games!",
+        "skeptic": "Three points. The kick was made. His career accuracy is 87.3%. Expected result, though a touchdown would have been preferable."
+    },
+    "INTERCEPTION": {
+        "homer": "HAHAHAHA! GET WRECKED! OUR DEFENSE IS ELITE! PICK SIX COMING! Feel that momentum shift!",
+        "skeptic": "That was rather predictable. The quarterback's footwork was telegraphing it. Poor decision under pressure."
+    }
+}
+
+RECAP_TEMPLATES = {
+    "TOUCHDOWN": "In what might be the defining moment of the game, {player} connected on a {yards}-yard strike that changed everything. {team} now controls their destiny with the lead.",
+    "PENALTY": "A controversial call that will be debated for weeks. The penalty gave {team} new life at a critical moment. Refs under fire from both fanbases.",
+    "FIELD_GOAL": "When the game was on the line, {player} delivered with a {yards}-yard field goal. Ice in the veins. {team} walks off victorious.",
+    "INTERCEPTION": "Momentum completely shifted when {team}'s defense came up with a crucial interception. The turnover could prove to be the difference maker."
+}
+
+COLD_OPEN_TEMPLATES = {
+    "TOUCHDOWN": [
+        "{player} breaks free down the seam",
+        "{yards} yards of pure magic in the fourth quarter",
+        "{team} takes the lead with time running out"
+    ],
+    "PENALTY": [
+        "Yellow flag flies at the worst possible moment",
+        "Controversial call sparks sideline eruption",
+        "Game hangs in the balance after review"
+    ],
+    "FIELD_GOAL": [
+        "{player} lines up for the game-winner",
+        "{yards} yards between victory and heartbreak",
+        "The kick is up... and it's GOOD!"
+    ],
+    "INTERCEPTION": [
+        "Ball in the air... PICKED OFF!",
+        "{team} defense comes up clutch",
+        "Momentum completely flipped in an instant"
+    ]
+}
+
+
+@app.post("/play")
+async def trigger_play(request: Request):
+    """
+    CREATOR STUDIO: Generate all 3 artifacts for the Dolby demo
+    Returns debate, recap, and cold open with timing data
+    """
+    import time
+    import uuid
+    
+    body = await request.json()
+    event_type = body.get("event_type", "TOUCHDOWN").upper()
+    description = body.get("description", "Play event triggered")
+    team = body.get("team", "Home Team")
+    player = body.get("player", "Star Player")
+    yards = body.get("yards", 25)
+    
+    request_id = str(uuid.uuid4())
+    t_start = time.time()
+    
+    # Get debate script
+    debate_data = DEBATE_SCRIPTS.get(event_type, DEBATE_SCRIPTS["TOUCHDOWN"])
+    t_debate = int((time.time() - t_start) * 1000)
+    
+    # Generate recap
+    recap_template = RECAP_TEMPLATES.get(event_type, RECAP_TEMPLATES["TOUCHDOWN"])
+    recap_content = recap_template.format(team=team, player=player, yards=yards)
+    t_recap = int((time.time() - t_start) * 1000)
+    
+    # Generate cold open bullets
+    cold_open_template = COLD_OPEN_TEMPLATES.get(event_type, COLD_OPEN_TEMPLATES["TOUCHDOWN"])
+    cold_open_bullets = [b.format(team=team, player=player, yards=yards) for b in cold_open_template]
+    t_cold_open = int((time.time() - t_start) * 1000)
+    
+    t_total = int((time.time() - t_start) * 1000)
+    
+    response = {
+        "request_id": request_id,
+        "event_type": event_type,
+        "artifacts": {
+            "debate": {
+                "homer": debate_data["homer"],
+                "skeptic": debate_data["skeptic"]
+            },
+            "recap": {
+                "content": recap_content
+            },
+            "coldOpen": {
+                "bullets": cold_open_bullets
+            }
+        },
+        "timings": {
+            "t_trigger": 0,
+            "t_debate_ready": t_debate,
+            "t_recap_ready": t_recap,
+            "t_cold_open_ready": t_cold_open,
+            "t_total": t_total
+        }
+    }
+    
+    logger.info(f"🎬 Creator Studio /play triggered: {event_type} → {t_total}ms")
+    return response
+
+
 @app.post("/speak")
 async def speak(request: Request):
     """
