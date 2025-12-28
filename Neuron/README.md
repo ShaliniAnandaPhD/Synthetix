@@ -1,5 +1,25 @@
 # 🧠 Neuron: Distributed Cognitive Architecture
 
+---
+
+## 🚀 Live Demo
+
+**▶️ [Launch Mission Control](https://neuron-mission-control.web.app/dashboard.html)**
+
+### Quick Start (30 seconds)
+1. **Open the link above** in Chrome/Safari
+2. **Click "🚀 RUN DEMO"** to trigger multi-agent AI debate
+3. **Watch** Fan Agent 🇺🇸 and Analyst Agent 🇬🇧 debate in real-time
+4. **Try "Kafka Event Replay"** to see deterministic event replay
+
+### What You're Seeing
+- **Confluent Kafka** → Event streaming backbone
+- **Google Cloud Run** → Serverless AI inference
+- **Gemini AI** → Real-time commentary generation
+- **Sub-second latency** → Live response times
+
+---
+
 > *"Real-time data unlocks real-world experiences."*
 
 **Neuron** is a distributed cognitive architecture designed for high-velocity event processing (e.g., live NFL/FIFA games). Unlike standard chatbots that wait for user input, Neuron actively listens to real-time data streams, reasons about game state using Google Vertex AI, and autonomously broadcasts commentary to thousands of users via Confluent Kafka.
