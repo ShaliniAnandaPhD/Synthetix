@@ -524,10 +524,9 @@
 
                     // Process each agent in the swarm
                     if (Array.isArray(agents)) {
-                        // Explicit locale order for reliable cycling
-                        const localeOrder = ['en-US', 'pt-BR', 'en-GB', 'es-MX', 'en-AU', 'ja-JP'];
-                        const fanLocale = localeOrder[stats.events % localeOrder.length];
-                        const analystLocale = localeOrder[(stats.events + 3) % localeOrder.length];
+                        // Fixed flags: Die Hard Fan = US, Analyst = UK
+                        const fanLocale = 'en-US';
+                        const analystLocale = 'en-GB';
 
                         // Agent A (Die Hard Fan) - render immediately
                         const fan = agents[0];
@@ -699,8 +698,8 @@
                 // Fallback to browser speechSynthesis (already queues automatically)
                 if ('speechSynthesis' in window) {
                     const utterance = new SpeechSynthesisUtterance(text);
-                    utterance.rate = persona === 'fanatic' ? 1.3 : 0.9;
-                    utterance.pitch = persona === 'fanatic' ? 1.2 : 0.8;
+                    utterance.rate = 0.85;  // Slower for clarity
+                    utterance.pitch = persona === 'fanatic' ? 1.1 : 0.9;
                     window.speechSynthesis.speak(utterance);
                 }
             };
