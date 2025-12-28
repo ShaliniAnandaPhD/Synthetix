@@ -861,19 +861,7 @@
                                                             }`}>
                                                             {msg.agent}
                                                         </span>
-                                                        {msg.persona && (
-                                                            <span className={`text-xs px-2 py-0.5 rounded-full font-bold uppercase ${msg.persona === 'fanatic'
-                                                                ? 'bg-orange-500/30 text-orange-300'
-                                                                : 'bg-purple-500/30 text-purple-300'
-                                                                }`}>
-                                                                {msg.persona === 'fanatic' ? '🔥 FANATIC' : '🧐 ANALYST'}
-                                                            </span>
-                                                        )}
-                                                        {msg.locale && LOCALES[msg.locale] && (
-                                                            <span className="text-lg" title={`${LOCALES[msg.locale].name} Style`}>
-                                                                {LOCALES[msg.locale].flag}
-                                                            </span>
-                                                        )}
+
                                                     </div>
                                                     <div className="flex items-center gap-3">
                                                         {msg.excitement && (
