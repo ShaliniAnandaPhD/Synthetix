@@ -113,8 +113,13 @@ async def kafka_stream() -> AsyncGenerator[dict, None]:
 # --- Routes ---
 
 @app.get("/api/stream")
-async def stream(request: Request):
+async def stream_api(request: Request):
     """Server-Sent Events endpoint for the frontend."""
+    return EventSourceResponse(kafka_stream())
+
+@app.get("/stream")
+async def stream(request: Request):
+    """SSE endpoint (alias for /api/stream)."""
     return EventSourceResponse(kafka_stream())
 
 @app.post("/api/simulate")
@@ -309,6 +314,54 @@ async def trigger_play(request: Request):
             "t_total": t_total
         }
     }
+
+
+# =============================================================================
+# TEXT-TO-SPEECH: Google Cloud TTS with conversational Journey voices
+# =============================================================================
+from google.cloud import texttospeech
+from starlette.responses import Response
+
+@app.post("/speak")
+async def speak(request: Request):
+    """Google Cloud TTS with conversational Journey voices."""
+    body = await request.json()
+    text = body.get("text", "")
+    persona = body.get("persona", "")
+    
+    if not text:
+        return Response(status_code=400)
+
+    try:
+        client = texttospeech.TextToSpeechClient()
+        input_text = texttospeech.SynthesisInput(text=text)
+        
+        # Use Journey voices for natural, conversational speech
+        if persona == "fanatic":
+            # Energetic male voice
+            voice_name = "en-US-Journey-D"
+        else:
+            # Calm analytical voice
+            voice_name = "en-US-Journey-F"
+            
+        voice = texttospeech.VoiceSelectionParams(
+            language_code="en-US",
+            name=voice_name
+        )
+        audio_config = texttospeech.AudioConfig(
+            audio_encoding=texttospeech.AudioEncoding.MP3,
+            speaking_rate=0.95  # Slightly slower for clarity
+        )
+
+        response = client.synthesize_speech(
+            input=input_text, voice=voice, audio_config=audio_config
+        )
+        
+        return Response(content=response.audio_content, media_type="audio/mpeg")
+        
+    except Exception as e:
+        print(f"TTS Error: {e}")
+        return Response(status_code=500)
 
 
 @app.get("/health")
