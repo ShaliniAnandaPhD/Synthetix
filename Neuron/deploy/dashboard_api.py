@@ -118,7 +118,7 @@ async def stream(request: Request):
     return EventSourceResponse(kafka_stream())
 
 @app.post("/api/simulate")
-async def simulate_event(req: SimulationRequest):
+async def simulate_api(req: SimulationRequest):
     """Injects a simulated event into the Kafka stream."""
     global producer
     try:
@@ -136,6 +136,80 @@ async def simulate_event(req: SimulationRequest):
         return {"status": "success", "message": event_text}
     except Exception as e:
         return {"status": "error", "detail": str(e)}
+
+
+# Multi-agent debate responses
+import random
+
+FAN_TD = [
+    "YESSSSS! TOUCHDOWN BABY! THIS IS THE GREATEST PLAY I'VE EVER SEEN! 🔥🔥🔥",
+    "THAT'S WHAT I'M TALKING ABOUT! DYNASTY CONFIRMED! WE'RE GOING ALL THE WAY!",
+    "DID YOU SEE THAT?! ABSOLUTE PERFECTION! BEST TEAM IN THE LEAGUE!",
+]
+
+FAN_INT = [
+    "HAHAHAHA! GET WRECKED! OUR DEFENSE IS ELITE! PICK SIX COMING!",
+    "TURNOVER BABY! THAT'S WHAT HAPPENS WHEN YOU TRY US! LET'S GOOO!",
+    "INTERCEPTION! Our secondary is UNSTOPPABLE! Feel that momentum shift!",
+]
+
+ANALYST_TD = [
+    "Right, well done. Good execution on the route. The defensive alignment was rather poor.",
+    "A touchdown, yes. The offensive line created adequate protection. Expected result.",
+    "Solid play design. The quarterback made the correct read. Unremarkable but effective.",
+]
+
+ANALYST_INT = [
+    "That was rather predictable. The quarterback's footwork was telegraphing it.",
+    "Poor decision under pressure. The safety was clearly dropping into zone coverage.",
+    "An interception. The quarterback attempted a pass into double coverage. Ill-advised.",
+]
+
+@app.post("/simulate_event")
+async def simulate_event(request: Request):
+    """Multi-agent debate: Die Hard Fan vs Analyst"""
+    import random
+    body = await request.json()
+    event_type = body.get("type", "PLAY").upper()
+    
+    if event_type in ["TD", "TOUCHDOWN"]:
+        fan_text = random.choice(FAN_TD)
+        analyst_text = random.choice(ANALYST_TD)
+        fan_score = random.randint(92, 100)
+        analyst_score = random.randint(55, 72)
+    elif event_type in ["INT", "INTERCEPTION"]:
+        fan_text = random.choice(FAN_INT)
+        analyst_text = random.choice(ANALYST_INT)
+        fan_score = random.randint(85, 98)
+        analyst_score = random.randint(50, 68)
+    else:
+        fan_text = "SOMETHING HAPPENED! LET'S GOOO!"
+        analyst_text = "A play occurred. Moving on."
+        fan_score = random.randint(50, 70)
+        analyst_score = random.randint(30, 45)
+    
+    return [
+        {
+            "agent_id": "agent-fan",
+            "persona": "fanatic",
+            "name": "Die Hard Fan 🔥",
+            "content": fan_text,
+            "excitement_score": fan_score,
+            "event_type": event_type,
+            "alignment": "left",
+            "timestamp": "Live"
+        },
+        {
+            "agent_id": "agent-analyst",
+            "persona": "analyst",
+            "name": "Analyst 🧐",
+            "content": analyst_text,
+            "excitement_score": analyst_score,
+            "event_type": event_type,
+            "alignment": "right",
+            "timestamp": "Live"
+        }
+    ]
 
 # =============================================================================
 # CREATOR STUDIO: /play endpoint for Dolby OptiView demo
