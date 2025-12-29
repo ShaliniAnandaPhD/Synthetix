@@ -158,6 +158,24 @@ FAN_INT = [
     "INTERCEPTION! Our secondary is UNSTOPPABLE! Feel that momentum shift!",
 ]
 
+FAN_PENALTY = [
+    "WHAT?! THAT'S A TERRIBLE CALL! THE REFS ARE BLIND! This is rigged!",
+    "ARE YOU KIDDING ME?! That was a clean play! These refs are AWFUL!",
+    "BOOOOOO! The league is literally out to get us! Conspiracy confirmed!",
+]
+
+FAN_FUMBLE = [
+    "FUMBLE! WE GOT IT! MOMENTUM SHIFT! THIS CHANGES EVERYTHING!",
+    "BALL'S OUT! Our boys are HUNGRY! That's championship defense right there!",
+    "TURNOVER! See that hit?! Our D-line is absolutely DOMINANT!",
+]
+
+FAN_FG = [
+    "MONEY! RIGHT DOWN THE MIDDLE! ICE IN HIS VEINS! That's my kicker!",
+    "GOOD! CLUTCH! When it matters most, we DELIVER! Points on the board!",
+    "THREE POINTS! Every point counts in a game like this! LET'S GO!",
+]
+
 ANALYST_TD = [
     "Right, well done. Good execution on the route. The defensive alignment was rather poor.",
     "A touchdown, yes. The offensive line created adequate protection. Expected result.",
@@ -168,6 +186,24 @@ ANALYST_INT = [
     "That was rather predictable. The quarterback's footwork was telegraphing it.",
     "Poor decision under pressure. The safety was clearly dropping into zone coverage.",
     "An interception. The quarterback attempted a pass into double coverage. Ill-advised.",
+]
+
+ANALYST_PENALTY = [
+    "The officials made the correct call. The tape will confirm. Undisciplined play.",
+    "A penalty. Expected, frankly. Their penalty rate is 23% above league average.",
+    "Procedural error. This has been a recurring issue with this team's preparation.",
+]
+
+ANALYST_FUMBLE = [
+    "Poor ball security. The running back's grip was compromised pre-contact.",
+    "A fumble. Statistically, this player has a 2.1% fumble rate. Not surprising.",
+    "The hit was precisely targeted at the ball. Good defensive technique.",
+]
+
+ANALYST_FG = [
+    "Three points. His career accuracy is 87.3%. Expected result.",
+    "The kick was made. Points are points, though a touchdown would have been preferable.",
+    "Field goal is good. Wind conditions were favorable. Routine execution.",
 ]
 
 @app.post("/simulate_event")
@@ -187,6 +223,21 @@ async def simulate_event(request: Request):
         analyst_text = random.choice(ANALYST_INT)
         fan_score = random.randint(85, 98)
         analyst_score = random.randint(50, 68)
+    elif event_type == "PENALTY":
+        fan_text = random.choice(FAN_PENALTY)
+        analyst_text = random.choice(ANALYST_PENALTY)
+        fan_score = random.randint(70, 85)
+        analyst_score = random.randint(35, 50)
+    elif event_type == "FUMBLE":
+        fan_text = random.choice(FAN_FUMBLE)
+        analyst_text = random.choice(ANALYST_FUMBLE)
+        fan_score = random.randint(88, 98)
+        analyst_score = random.randint(52, 70)
+    elif event_type in ["FG", "FIELD_GOAL", "FIELD GOAL"]:
+        fan_text = random.choice(FAN_FG)
+        analyst_text = random.choice(ANALYST_FG)
+        fan_score = random.randint(75, 90)
+        analyst_score = random.randint(45, 60)
     else:
         fan_text = "SOMETHING HAPPENED! LET'S GOOO!"
         analyst_text = "A play occurred. Moving on."
