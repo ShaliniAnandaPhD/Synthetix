@@ -744,9 +744,9 @@
                                 )}
 
                                 {/* Latency Timer */}
-                                <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${lastLatency ? 'bg-gradient-to-r from-green-900/50 to-emerald-900/50 border-green-500/40' : 'bg-slate-800/50 border-slate-600/40'}`}>
-                                    <span className="text-xs text-green-300 uppercase tracking-wide">Response</span>
-                                    <span className={`text-xl font-orbitron text-green-400 ${lastLatency ? 'latency-glow' : ''}`}>{lastLatency ? 'Sub-second' : '--'}</span>
+                                <div className={`flex flex-col items-center gap-1 px-4 py-3 rounded-lg border ${lastLatency ? 'bg-gradient-to-r from-green-900/50 to-emerald-900/50 border-green-500/40' : 'bg-slate-800/50 border-slate-600/40'}`}>
+                                    <span className="text-[10px] text-green-300 uppercase tracking-widest">Response</span>
+                                    <span className={`text-lg font-orbitron text-green-400 ${lastLatency ? 'latency-glow' : ''}`}>{lastLatency ? 'Sub-second' : '--'}</span>
                                 </div>
 
                                 {/* Connection Status */}
