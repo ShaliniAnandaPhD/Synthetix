@@ -375,10 +375,11 @@ from starlette.responses import Response
 
 @app.post("/speak")
 async def speak(request: Request):
-    """Google Cloud TTS with conversational Journey voices."""
+    """Google Cloud TTS with cultural voice selection."""
     body = await request.json()
     text = body.get("text", "")
     persona = body.get("persona", "")
+    voice_locale = body.get("voice_locale", "")
     
     if not text:
         return Response(status_code=400)
@@ -387,16 +388,32 @@ async def speak(request: Request):
         client = texttospeech.TextToSpeechClient()
         input_text = texttospeech.SynthesisInput(text=text)
         
-        # Use Journey voices for natural, conversational speech
-        if persona == "fanatic":
+        # Check for locale override first
+        if voice_locale:
+            locale_voices = {
+                "de-DE": ("de-DE", "de-DE-Neural2-B"),    # German analytical
+                "en-GB": ("en-GB", "en-GB-Neural2-B"),    # British dry wit
+                "ja-JP": ("ja-JP", "ja-JP-Neural2-C"),    # Japanese precise
+                "pt-BR": ("pt-BR", "pt-BR-Neural2-B"),    # Brazilian GOOOOL
+                "es-MX": ("es-MX", "es-MX-Neural2-A"),    # Mexican Andrés Cantor
+                "en-AU": ("en-AU", "en-AU-Neural2-B"),    # Aussie mate
+            }
+            if voice_locale in locale_voices:
+                language_code, voice_name = locale_voices[voice_locale]
+            else:
+                language_code = "en-US"
+                voice_name = "en-US-Journey-D"
+        elif persona == "fanatic":
             # Energetic male voice
+            language_code = "en-US"
             voice_name = "en-US-Journey-D"
         else:
             # Calm analytical voice
+            language_code = "en-US"
             voice_name = "en-US-Journey-F"
             
         voice = texttospeech.VoiceSelectionParams(
-            language_code="en-US",
+            language_code=language_code,
             name=voice_name
         )
         audio_config = texttospeech.AudioConfig(

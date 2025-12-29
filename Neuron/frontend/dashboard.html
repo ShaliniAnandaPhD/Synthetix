@@ -430,6 +430,7 @@
             // Locale configurations
             const LOCALES = {
                 'en-US': { flag: '🇺🇸', name: 'American', style: 'Stats-focused NFL' },
+                'de-DE': { flag: '🇩🇪', name: 'German', style: 'Precise analytical' },
                 'pt-BR': { flag: '🇧🇷', name: 'Brazilian', style: 'GOOOOL energy!' },
                 'en-GB': { flag: '🇬🇧', name: 'British', style: 'Dry & sarcastic' },
                 'es-MX': { flag: '🇲🇽', name: 'Mexican', style: 'Andrés Cantor' },
@@ -684,13 +685,17 @@
                 console.log('🎤 Playing ' + (persona || 'default') + ' voice');
             };
 
-            // Updated speak function with persona support and queue
-            const speak = async (text, persona = '') => {
+            // Updated speak function with persona and locale support
+            const speak = async (text, persona = '', voiceLocale = '') => {
                 try {
                     const response = await fetch('https://neuron-api-582963349700.us-central1.run.app/speak', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ text: text.substring(0, 500), persona })
+                        body: JSON.stringify({
+                            text: text.substring(0, 500),
+                            persona,
+                            voice_locale: voiceLocale || currentLocale  // Use current locale selection
+                        })
                     });
 
                     if (response.ok) {
