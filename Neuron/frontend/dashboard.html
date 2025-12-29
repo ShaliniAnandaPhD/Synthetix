@@ -600,6 +600,12 @@
             // Demo capability simulations
             const demoCapability = (capability) => {
                 const demos = {
+                    'kafka_replay': {
+                        agent: '📼 Kafka Replay Engine',
+                        content: '⏪ REPLAYING EVENTS: Rewinding Kafka topic offset by 30 seconds... 47 events queued. Deterministic replay in progress — same input, same output, guaranteed.',
+                        type: 'system',
+                        color: 'orange'
+                    },
                     'object_permanence': {
                         agent: '🧠 Memory Module',
                         content: '📂 CONTEXT RECALLED: User asked about Patrick Mahomes stats 2 hours ago. Retrieving... "Mahomes: 312 yds, 3 TD, 0 INT" — Memory persists across server restarts via Firestore.',
@@ -620,7 +626,7 @@
                     },
                     'swarm_intelligence': {
                         agent: '🐝 Swarm Orchestrator',
-                        content: '⚡ MULTI-AGENT DEBATE INITIATED: The Homer (fanatic) vs The Skeptic (analyst). Each agent processes independently with distinct personality weights and voices.',
+                        content: '⚡ MULTI-AGENT DEBATE INITIATED: Die Hard Fan vs Analyst. Each agent processes independently with distinct personality weights and voices.',
                         type: 'swarm',
                         color: 'green'
                     },
@@ -634,6 +640,11 @@
 
                 const demo = demos[capability];
                 if (demo) {
+                    // Stop any current audio and clear queue to prevent overlap
+                    window.speechSynthesis.cancel();
+                    audioQueue = [];
+                    isPlaying = false;
+
                     const message = {
                         id: Date.now(),
                         content: demo.content,
@@ -929,18 +940,7 @@
                                     <div className="space-y-2 text-xs">
                                         {/* KAFKA REPLAY - Featured */}
                                         <button
-                                            onClick={() => {
-                                                const replayMessage = {
-                                                    id: Date.now(),
-                                                    content: '⏪ KAFKA REPLAY: Rewinding event log to last touchdown... Found event at offset 47293. Deterministically replaying game state. This is the power of Kafka as a replay log.',
-                                                    agent: '📡 Kafka Replay Engine',
-                                                    timestamp: new Date().toLocaleTimeString(),
-                                                    type: 'system',
-                                                    isDemo: true
-                                                };
-                                                setMessages(prev => [replayMessage, ...prev].slice(0, 50));
-                                                setStats(prev => ({ ...prev, events: prev.events + 1 }));
-                                            }}
+                                            onClick={() => demoCapability('kafka_replay')}
                                             className="w-full flex items-start gap-2 p-3 bg-orange-900/30 rounded-lg border border-orange-500/50 hover:bg-orange-900/50 transition-all cursor-pointer text-left"
                                         >
                                             <span className="text-lg">⏪</span>
