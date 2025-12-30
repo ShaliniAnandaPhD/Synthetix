@@ -2210,15 +2210,15 @@
             setTimeout(() => {
                 const html = `
                     <div class="debate-speaker homer">
-                        <div class="debate-label">🔥 The Homer</div>
-                        <div class="debate-text">"${artifacts.debate.homer}"</div>
+                        <div class="debate-label">🔥 Die Hard Fan</div>
+                        <div class="debate-text">"${artifacts.debate.fan}"</div>
                     </div>
                     <div class="debate-speaker skeptic">
-                        <div class="debate-label">🧐 The Skeptic</div>
-                        <div class="debate-text">"${artifacts.debate.skeptic}"</div>
+                        <div class="debate-label">📊 Analyst</div>
+                        <div class="debate-text">"${artifacts.debate.analyst}"</div>
                     </div>
                 `;
-                updateArtifact('debate', html, getElapsedTime(), `HOMER: ${artifacts.debate.homer}\n\nSKEPTIC: ${artifacts.debate.skeptic}`);
+                updateArtifact('debate', html, getElapsedTime(), `FAN: ${artifacts.debate.fan}\n\nANALYST: ${artifacts.debate.analyst}`);
             }, 800);
 
             // Recap
