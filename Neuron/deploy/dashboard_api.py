@@ -1,8 +1,10 @@
 import asyncio
 import os
 import ssl
+import time
 import uuid
 from typing import AsyncGenerator
+from collections import deque
 
 import uvicorn
 from fastapi import FastAPI, Request
@@ -434,11 +436,10 @@ async def speak(request: Request):
 # =============================================================================
 # DOLBY SYNC VERIFICATION ENDPOINTS
 # =============================================================================
-import random
-from collections import deque
 
 # Store recent sync samples for monitoring
 sync_samples = deque(maxlen=100)
+startup_time = time.time()
 
 @app.get("/sync-test")
 async def sync_test():
@@ -488,10 +489,8 @@ async def sync_monitor():
         "max_drift_ms": round(max_drift, 2),
         "drift_std_dev": round(std_dev, 2),
         "samples_analyzed": len(sync_samples),
-        "uptime_seconds": int(time.time() - startup_time) if 'startup_time' in globals() else 0
+        "uptime_seconds": int(time.time() - startup_time)
     }
-
-startup_time = time.time()
 
 
 @app.get("/health")
