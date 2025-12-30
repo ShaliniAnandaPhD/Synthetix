@@ -1136,7 +1136,7 @@
             </div>
         </div>
 
-        <!-- DOLBY METRICS PANEL -->
+        <!-- DOLBY METRICS PANEL v2.0 -->
         <div class="dolby-metrics">
             <div class="metrics-badge">
                 <span>📊</span>
@@ -1166,7 +1166,24 @@
                 </div>
             </div>
 
-            <button class="kiosk-btn" onclick="enterKioskMode()">📺 Kiosk Mode</button>
+            <div class="metric-item" style="min-width: 140px;">
+                <span class="metric-label">vs Broadcast</span>
+                <span class="metric-value good" id="improvementPct">97</span>
+                <span class="metric-label">% faster</span>
+            </div>
+
+            <div class="metric-item" style="min-width: 160px;">
+                <span class="metric-label">Listen Time</span>
+                <div style="display: flex; gap: 0.75rem; font-size: 0.7rem;">
+                    <span>🔥 <span id="fanListenTime">0:00</span></span>
+                    <span>📊 <span id="analystListenTime">0:00</span></span>
+                </div>
+            </div>
+
+            <button class="kiosk-btn" onclick="enterKioskMode()">📺 Kiosk</button>
+            <button class="kiosk-btn" onclick="exportMetrics()"
+                style="background: rgba(52, 211, 153, 0.15); border-color: rgba(52, 211, 153, 0.3); color: var(--accent-emerald);">📥
+                Export</button>
         </div>
 
         <!-- Floating Particles -->
@@ -1316,53 +1333,170 @@
         const API_BASE = 'https://neuron-api-582963349700.us-central1.run.app';
         const TIMEOUT_MS = 15000;
 
-        // ============ DOLBY METRICS TRACKING ============
-        const dolbyMetrics = {
-            pageLoadTime: performance.now(),
-            firstAudioTime: null,
-            toggles: [],
-            lastSyncCheck: null,
-            syncDrift: 0
-        };
+        // ============ DOLBY METRICS COLLECTOR v2.0 ============
+        class MetricsCollector {
+            constructor() {
+                this.sessionId = crypto.randomUUID();
+                this.sessionStart = Date.now();
+                this.pageLoadTime = performance.now();
+                this.ttfa = null;
+                this.toggleCount = 0;
+                this.toggleTimestamps = [];
+                this.latencyMeasurements = [];
+                this.syncMeasurements = [];
+                this.maxSyncDrift = 0;
+                this.personaListenTime = { die_hard_fan: 0, analyst: 0 };
+                this.currentPersona = 'analyst';
+                this.personaStartTime = Date.now();
+            }
 
-        // Track time-to-first-audio
-        function recordFirstAudio() {
-            if (!dolbyMetrics.firstAudioTime) {
-                dolbyMetrics.firstAudioTime = performance.now();
-                const ttfa = ((dolbyMetrics.firstAudioTime - dolbyMetrics.pageLoadTime) / 1000).toFixed(2);
-                const ttfaEl = document.getElementById('ttfaMetric');
-                if (ttfaEl) {
-                    ttfaEl.textContent = ttfa + 's';
-                    ttfaEl.classList.add(parseFloat(ttfa) < 2 ? 'good' : parseFloat(ttfa) < 5 ? 'warning' : 'bad');
+            recordFirstAudio() {
+                if (!this.ttfa) {
+                    this.ttfa = performance.now() - this.pageLoadTime;
+                    const ttfaSec = (this.ttfa / 1000).toFixed(2);
+                    const ttfaEl = document.getElementById('ttfaMetric');
+                    if (ttfaEl) {
+                        ttfaEl.textContent = ttfaSec + 's';
+                        ttfaEl.classList.remove('good', 'warning', 'bad');
+                        ttfaEl.classList.add(this.ttfa < 2000 ? 'good' : this.ttfa < 5000 ? 'warning' : 'bad');
+                    }
                 }
             }
-        }
 
-        // Track toggles per minute
-        function recordToggle() {
-            const now = Date.now();
-            dolbyMetrics.toggles.push(now);
-            // Only keep toggles from last minute
-            dolbyMetrics.toggles = dolbyMetrics.toggles.filter(t => now - t < 60000);
-            updateTogglesDisplay();
-        }
+            recordToggle(newPersona) {
+                const now = Date.now();
+                this.toggleCount++;
+                this.toggleTimestamps.push(now);
+                // Keep only last minute
+                this.toggleTimestamps = this.toggleTimestamps.filter(t => now - t < 60000);
 
-        function updateTogglesDisplay() {
-            const togglesEl = document.getElementById('togglesMetric');
-            if (togglesEl) {
-                togglesEl.textContent = dolbyMetrics.toggles.length;
+                // Update persona listen time
+                if (this.personaStartTime) {
+                    const duration = now - this.personaStartTime;
+                    this.personaListenTime[this.currentPersona] += duration;
+                }
+
+                this.currentPersona = newPersona || (this.currentPersona === 'analyst' ? 'die_hard_fan' : 'analyst');
+                this.personaStartTime = now;
+
+                this.updateTogglesDisplay();
+                this.updatePersonaTimeDisplay();
+            }
+
+            updateTogglesDisplay() {
+                const togglesEl = document.getElementById('togglesMetric');
+                if (togglesEl) {
+                    togglesEl.textContent = this.toggleTimestamps.length;
+                }
+            }
+
+            updatePersonaTimeDisplay() {
+                const formatTime = (ms) => {
+                    const secs = Math.floor(ms / 1000);
+                    const mins = Math.floor(secs / 60);
+                    const s = secs % 60;
+                    return `${mins}:${s.toString().padStart(2, '0')}`;
+                };
+
+                const fanEl = document.getElementById('fanListenTime');
+                const analystEl = document.getElementById('analystListenTime');
+                if (fanEl) fanEl.textContent = formatTime(this.personaListenTime.die_hard_fan);
+                if (analystEl) analystEl.textContent = formatTime(this.personaListenTime.analyst);
+            }
+
+            recordLatency(latencyMs) {
+                this.latencyMeasurements.push(latencyMs);
+                const avg = Math.round(this.latencyMeasurements.reduce((a, b) => a + b, 0) / this.latencyMeasurements.length);
+
+                const latencyEl = document.getElementById('latencyMetric');
+                if (latencyEl) {
+                    latencyEl.textContent = avg + 'ms';
+                    latencyEl.classList.remove('good', 'warning', 'bad');
+                    latencyEl.classList.add(avg < 500 ? 'good' : avg < 1000 ? 'warning' : 'bad');
+                }
+
+                // Update comparison vs traditional
+                const impEl = document.getElementById('improvementPct');
+                if (impEl) {
+                    const improvement = ((30000 - avg) / 30000 * 100).toFixed(0);
+                    impEl.textContent = improvement;
+                }
+            }
+
+            recordSyncDrift(driftMs) {
+                this.syncMeasurements.push(Math.abs(driftMs));
+                this.maxSyncDrift = Math.max(this.maxSyncDrift, Math.abs(driftMs));
+
+                const syncDot = document.getElementById('syncDot');
+                const syncMetric = document.getElementById('syncMetric');
+
+                if (syncDot && syncMetric) {
+                    syncDot.classList.remove('synced', 'drifting', 'out-of-sync');
+                    if (Math.abs(driftMs) < 50) {
+                        syncDot.classList.add('synced');
+                        syncMetric.textContent = '<50ms';
+                    } else if (Math.abs(driftMs) < 100) {
+                        syncDot.classList.add('drifting');
+                        syncMetric.textContent = Math.round(driftMs) + 'ms';
+                    } else {
+                        syncDot.classList.add('out-of-sync');
+                        syncMetric.textContent = Math.round(driftMs) + 'ms';
+                    }
+                }
+            }
+
+            exportReport() {
+                const elapsedMin = (Date.now() - this.sessionStart) / 60000;
+                const avgLatency = this.latencyMeasurements.length > 0
+                    ? Math.round(this.latencyMeasurements.reduce((a, b) => a + b, 0) / this.latencyMeasurements.length)
+                    : 0;
+
+                const report = {
+                    session_id: this.sessionId,
+                    timestamp: new Date().toISOString(),
+                    demo_version: "2.0-dolby-summit",
+                    duration_minutes: elapsedMin.toFixed(2),
+                    metrics: {
+                        avg_latency_ms: avgLatency,
+                        min_latency_ms: this.latencyMeasurements.length ? Math.min(...this.latencyMeasurements) : 0,
+                        max_latency_ms: this.latencyMeasurements.length ? Math.max(...this.latencyMeasurements) : 0,
+                        time_to_first_audio_ms: this.ttfa ? Math.round(this.ttfa) : null,
+                        toggles_per_minute: (this.toggleCount / elapsedMin).toFixed(2),
+                        total_toggles: this.toggleCount,
+                        sync_drift_max_ms: Math.round(this.maxSyncDrift),
+                        sync_drift_avg_ms: this.syncMeasurements.length
+                            ? Math.round(this.syncMeasurements.reduce((a, b) => a + b, 0) / this.syncMeasurements.length)
+                            : 0,
+                        persona_listen_time_ms: this.personaListenTime,
+                        persona_preference: this.personaListenTime.die_hard_fan > this.personaListenTime.analyst ? 'die_hard_fan' : 'analyst'
+                    },
+                    comparison: {
+                        traditional_broadcast_latency_ms: 30000,
+                        our_avg_latency_ms: avgLatency,
+                        improvement_percentage: ((30000 - avgLatency) / 30000 * 100).toFixed(1)
+                    }
+                };
+
+                const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `dolby-demo-${this.sessionId.slice(0, 8)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+
+                console.log('📊 Dolby metrics exported:', report);
+                return report;
             }
         }
 
-        // Update E2E latency display
-        function updateLatencyMetric(latencyMs) {
-            const latencyEl = document.getElementById('latencyMetric');
-            if (latencyEl) {
-                latencyEl.textContent = latencyMs + 'ms';
-                latencyEl.classList.remove('good', 'warning', 'bad');
-                latencyEl.classList.add(latencyMs < 500 ? 'good' : latencyMs < 1000 ? 'warning' : 'bad');
-            }
-        }
+        // Initialize metrics collector
+        const metricsCollector = new MetricsCollector();
+
+        // Legacy compatibility wrappers
+        function recordFirstAudio() { metricsCollector.recordFirstAudio(); }
+        function recordToggle() { metricsCollector.recordToggle(); }
+        function updateLatencyMetric(ms) { metricsCollector.recordLatency(ms); }
 
         // Sync check
         async function checkSync() {
@@ -1371,28 +1505,15 @@
                 const response = await fetch(`${API_BASE}/health`);
                 const end = performance.now();
                 const roundTrip = end - start;
-
-                dolbyMetrics.syncDrift = roundTrip / 2; // Approximate server time difference
-
-                const syncDot = document.getElementById('syncDot');
-                const syncMetric = document.getElementById('syncMetric');
-
-                if (syncDot && syncMetric) {
-                    syncDot.classList.remove('synced', 'drifting', 'out-of-sync');
-                    if (dolbyMetrics.syncDrift < 50) {
-                        syncDot.classList.add('synced');
-                        syncMetric.textContent = '<50ms';
-                    } else if (dolbyMetrics.syncDrift < 100) {
-                        syncDot.classList.add('drifting');
-                        syncMetric.textContent = Math.round(dolbyMetrics.syncDrift) + 'ms';
-                    } else {
-                        syncDot.classList.add('out-of-sync');
-                        syncMetric.textContent = Math.round(dolbyMetrics.syncDrift) + 'ms';
-                    }
-                }
+                metricsCollector.recordSyncDrift(roundTrip / 2);
             } catch (e) {
                 console.log('Sync check failed:', e);
             }
+        }
+
+        // Export metrics
+        function exportMetrics() {
+            metricsCollector.exportReport();
         }
 
         // Kiosk Mode
