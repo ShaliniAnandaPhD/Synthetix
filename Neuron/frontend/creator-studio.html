@@ -924,6 +924,138 @@
             }
         }
 
+        /* ============ DOLBY METRICS PANEL ============ */
+        .dolby-metrics {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(34, 211, 238, 0.08) 100%);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .metrics-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            background: rgba(168, 85, 247, 0.15);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 100px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: var(--accent-purple);
+        }
+
+        .metric-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            min-width: 100px;
+        }
+
+        .metric-label {
+            font-size: 0.6rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .metric-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--text-primary);
+        }
+
+        .metric-value.good {
+            color: var(--accent-emerald);
+            text-shadow: var(--glow-emerald);
+        }
+
+        .metric-value.warning {
+            color: var(--accent-amber);
+        }
+
+        .metric-value.bad {
+            color: var(--accent-rose);
+        }
+
+        .sync-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sync-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--text-muted);
+        }
+
+        .sync-dot.synced {
+            background: var(--accent-emerald);
+            box-shadow: 0 0 10px rgba(52, 211, 153, 0.5);
+        }
+
+        .sync-dot.drifting {
+            background: var(--accent-amber);
+            animation: pulse 1s infinite;
+        }
+
+        .sync-dot.out-of-sync {
+            background: var(--accent-rose);
+            animation: pulse 0.5s infinite;
+        }
+
+        /* Kiosk Mode */
+        .kiosk-btn {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 8px;
+            color: var(--accent-purple);
+            font-family: inherit;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .kiosk-btn:hover {
+            background: rgba(168, 85, 247, 0.15);
+        }
+
+        body.kiosk-mode .hero-header,
+        body.kiosk-mode .event-buttons,
+        body.kiosk-mode .artifact-footer,
+        body.kiosk-mode .studio-footer {
+            display: none;
+        }
+
+        body.kiosk-mode .dolby-metrics {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(10, 10, 18, 0.95);
+            backdrop-filter: blur(20px);
+        }
+
+        body.kiosk-mode .main-content {
+            padding-bottom: 80px;
+        }
+
         /* Responsive */
         @media (max-width: 1100px) {
             .artifacts-grid {
@@ -1002,6 +1134,39 @@
                 <span class="current-event-label">Playing:</span>
                 <span class="current-event-value" id="currentEventDisplay">Travis Kelce • Chiefs • TD</span>
             </div>
+        </div>
+
+        <!-- DOLBY METRICS PANEL -->
+        <div class="dolby-metrics">
+            <div class="metrics-badge">
+                <span>📊</span>
+                <span>DOLBY OPTIVIEW METRICS</span>
+            </div>
+
+            <div class="metric-item">
+                <span class="metric-label">E2E Latency</span>
+                <span class="metric-value" id="latencyMetric">--</span>
+            </div>
+
+            <div class="metric-item">
+                <span class="metric-label">Time to Audio</span>
+                <span class="metric-value" id="ttfaMetric">--</span>
+            </div>
+
+            <div class="metric-item">
+                <span class="metric-label">Toggles/min</span>
+                <span class="metric-value" id="togglesMetric">0</span>
+            </div>
+
+            <div class="metric-item">
+                <span class="metric-label">Sync Status</span>
+                <div class="sync-indicator">
+                    <div class="sync-dot synced" id="syncDot"></div>
+                    <span class="metric-value" id="syncMetric">OK</span>
+                </div>
+            </div>
+
+            <button class="kiosk-btn" onclick="enterKioskMode()">📺 Kiosk Mode</button>
         </div>
 
         <!-- Floating Particles -->
@@ -1150,6 +1315,111 @@
         // ============ CONFIG ============
         const API_BASE = 'https://neuron-api-582963349700.us-central1.run.app';
         const TIMEOUT_MS = 15000;
+
+        // ============ DOLBY METRICS TRACKING ============
+        const dolbyMetrics = {
+            pageLoadTime: performance.now(),
+            firstAudioTime: null,
+            toggles: [],
+            lastSyncCheck: null,
+            syncDrift: 0
+        };
+
+        // Track time-to-first-audio
+        function recordFirstAudio() {
+            if (!dolbyMetrics.firstAudioTime) {
+                dolbyMetrics.firstAudioTime = performance.now();
+                const ttfa = ((dolbyMetrics.firstAudioTime - dolbyMetrics.pageLoadTime) / 1000).toFixed(2);
+                const ttfaEl = document.getElementById('ttfaMetric');
+                if (ttfaEl) {
+                    ttfaEl.textContent = ttfa + 's';
+                    ttfaEl.classList.add(parseFloat(ttfa) < 2 ? 'good' : parseFloat(ttfa) < 5 ? 'warning' : 'bad');
+                }
+            }
+        }
+
+        // Track toggles per minute
+        function recordToggle() {
+            const now = Date.now();
+            dolbyMetrics.toggles.push(now);
+            // Only keep toggles from last minute
+            dolbyMetrics.toggles = dolbyMetrics.toggles.filter(t => now - t < 60000);
+            updateTogglesDisplay();
+        }
+
+        function updateTogglesDisplay() {
+            const togglesEl = document.getElementById('togglesMetric');
+            if (togglesEl) {
+                togglesEl.textContent = dolbyMetrics.toggles.length;
+            }
+        }
+
+        // Update E2E latency display
+        function updateLatencyMetric(latencyMs) {
+            const latencyEl = document.getElementById('latencyMetric');
+            if (latencyEl) {
+                latencyEl.textContent = latencyMs + 'ms';
+                latencyEl.classList.remove('good', 'warning', 'bad');
+                latencyEl.classList.add(latencyMs < 500 ? 'good' : latencyMs < 1000 ? 'warning' : 'bad');
+            }
+        }
+
+        // Sync check
+        async function checkSync() {
+            try {
+                const start = performance.now();
+                const response = await fetch(`${API_BASE}/health`);
+                const end = performance.now();
+                const roundTrip = end - start;
+
+                dolbyMetrics.syncDrift = roundTrip / 2; // Approximate server time difference
+
+                const syncDot = document.getElementById('syncDot');
+                const syncMetric = document.getElementById('syncMetric');
+
+                if (syncDot && syncMetric) {
+                    syncDot.classList.remove('synced', 'drifting', 'out-of-sync');
+                    if (dolbyMetrics.syncDrift < 50) {
+                        syncDot.classList.add('synced');
+                        syncMetric.textContent = '<50ms';
+                    } else if (dolbyMetrics.syncDrift < 100) {
+                        syncDot.classList.add('drifting');
+                        syncMetric.textContent = Math.round(dolbyMetrics.syncDrift) + 'ms';
+                    } else {
+                        syncDot.classList.add('out-of-sync');
+                        syncMetric.textContent = Math.round(dolbyMetrics.syncDrift) + 'ms';
+                    }
+                }
+            } catch (e) {
+                console.log('Sync check failed:', e);
+            }
+        }
+
+        // Kiosk Mode
+        function enterKioskMode() {
+            document.body.classList.add('kiosk-mode');
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            }
+        }
+
+        function exitKioskMode() {
+            document.body.classList.remove('kiosk-mode');
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+
+        // Listen for ESC to exit kiosk mode
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.body.classList.contains('kiosk-mode')) {
+                exitKioskMode();
+            }
+        });
+
+        // Check sync every 5 seconds
+        setInterval(checkSync, 5000);
+        checkSync(); // Initial check
 
         // ============ DEMO EVENT SCENARIOS ============
         const DEMO_EVENTS = {
@@ -1476,6 +1746,7 @@
             currentLens = document.getElementById('culturalLens').value;
 
             // Try API first, fallback to local generation
+            const apiStartTime = performance.now();
             try {
                 const response = await Promise.race([
                     fetch(`${API_BASE}/play`, {
@@ -1494,7 +1765,11 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('📡 API Response:', data);
+                    const apiEndTime = performance.now();
+                    const latencyMs = Math.round(apiEndTime - apiStartTime);
+                    updateLatencyMetric(latencyMs);
+                    recordFirstAudio(); // Mark first content as "audio ready"
+                    console.log('📡 API Response:', data, `(${latencyMs}ms)`);
                     renderFromAPI(data);
                     return;
                 }
@@ -1600,6 +1875,7 @@
 
         function onLensChange() {
             currentLens = document.getElementById('culturalLens').value;
+            recordToggle(); // Track lens changes for Dolby metrics
             if (artifactsReceived.debate) {
                 // Re-render with new cultural lens
                 resetStudio();
